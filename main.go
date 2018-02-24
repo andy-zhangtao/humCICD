@@ -6,17 +6,27 @@
 package main
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/andy-zhangtao/humCICD/git"
+	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/gorilla/mux"
+	"github.com/nsqio/go-nsq"
 )
 
 const _API_ = "/v1"
 const ModuleName = "HUMCICD"
+
+type NsqBridge struct {
+	producer *nsq.Producer
+}
+
+var nb *NsqBridge
 
 func main() {
 	switch strings.ToLower(os.Getenv("HUM_DEBUG")) {
@@ -40,7 +50,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/_ping", ping).Methods(http.MethodGet)
-	r.HandleFunc(getAPIPath("/trigger"), trigger).Methods(http.MethodPost)
+	r.HandleFunc(getAPIPath("/tag/trigger"), trigger).Methods(http.MethodPost)
 	logrus.Println(http.ListenAndServeTLS(":443", "server.crt", "server.key", r))
 }
 
@@ -63,5 +73,61 @@ func trigger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logrus.WithFields(logrus.Fields{"Body": string(data)}).Info(ModuleName)
+	logrus.WithFields(logrus.Fields{"Body": string(data)}).Debug(ModuleName)
+
+	tagEvent := git.TagEvent{}
+
+	err = json.Unmarshal(data, &tagEvent)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"Unmarshal Body Error": err}).Error(ModuleName)
+		return
+	}
+
+	branch := strings.Split(tagEvent.Ref, "-")
+	if len(branch) == 1 {
+		branch = append(branch, "master")
+	}
+
+	msg := model.TagEventMsg{
+		Kind:   "tag",
+		GitURL: tagEvent.Repository.Clone_url,
+		Tag:    branch[0],
+		Branch: branch[1],
+	}
+
+	m, err  := json.Marshal(msg)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"Marshal Body Error": err}).Error(ModuleName)
+		return
+	}
+
+	makeMsg(model.TAGQUEUE, string(m))
+
+}
+
+func init() {
+	nsq_endpoint := os.Getenv(model.EnvNsqdEndpoint)
+	logrus.WithFields(logrus.Fields{"Connect NSQ": nsq_endpoint,}).Info(ModuleName)
+
+	producer, err := nsq.NewProducer(nsq_endpoint, nsq.NewConfig())
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"Connect Nsq Error": err,}).Panic(ModuleName)
+	}
+
+	nb = &NsqBridge{
+		producer: producer,
+	}
+
+	err = producer.Ping()
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"Ping Nsq Error": err,}).Panic(ModuleName)
+	}
+
+	logrus.WithFields(logrus.Fields{"Connect Nsq Succes": producer.String(),}).Info(ModuleName)
+
+}
+
+func makeMsg(topic, msg string) error {
+	logrus.WithFields(logrus.Fields{"Topic": topic, "Msg": msg}).Info(ModuleName)
+	return nb.producer.Publish(topic, []byte(msg))
 }
