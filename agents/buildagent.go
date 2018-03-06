@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/andy-zhangtao/humCICD/model"
@@ -38,6 +37,10 @@ type DockerOpts struct {
 	Port []int             `json:"port"`
 	Env  map[string]string `json:"env"`
 	Cmd  string            `json:"cmd"`
+}
+
+// HCIDOpt CI/CD的配置数据
+type HCIDOpt struct {
 }
 
 func (this *BuildAgent) HandleMessage(m *nsq.Message) error {
@@ -81,6 +84,8 @@ func (this *BuildAgent) Run() {
 
 			logrus.WithFields(logrus.Fields{"Kind": msg.Kind, "Branch": msg.Branch, "GitURL": msg.GitURL, "Tag": msg.Tag}).Info(this.Name)
 
+			go this.handleBuild()
+
 			m.Finish()
 		}
 	}()
@@ -99,7 +104,10 @@ func (this *BuildAgent) Run() {
 // handleBuild 处理构建请求
 // 创建docker容器
 // 从github获取指定版本的代码进行构建
-func (this *BuildAgent) handleBuild() {}
+func (this *BuildAgent) handleBuild() {
+	/*解析HCID配置数据*/
+	parseConfigrue
+}
 
 // checkRun 检查是否具备运行环境
 // 包括检查是否具备docker运行条件
@@ -128,15 +136,15 @@ func checkDocker() (client *docker.Client, err error) {
 // buildContainer 按照配置文件中的约束关系进行容器创建
 func (this *BuildAgent) buildContainer(do DockerOpts) error {
 	pb := make(map[docker.Port][]docker.PortBinding)
-	if len(do.Port) > 0{
-		for _, p := range do.Port{
-			pb[docker.Port(fmt.Sprintf("%d/tcp",p))]=[]docker.PortBinding{
+	if len(do.Port) > 0 {
+		for _, p := range do.Port {
+			pb[docker.Port(fmt.Sprintf("%d/tcp", p))] = []docker.PortBinding{
 				docker.PortBinding{HostIP: "0.0.0.0", HostPort: fmt.Sprintf("%d", p)},
 			}
 		}
 	}
 
-	logrus.WithFields(logrus.Fields{"Port":pb}).Info(this.Name)
+	logrus.WithFields(logrus.Fields{"Port": pb}).Info(this.Name)
 
 	container, err := this.Client.CreateContainer(docker.CreateContainerOptions{
 		Name: do.Name,
@@ -152,11 +160,20 @@ func (this *BuildAgent) buildContainer(do DockerOpts) error {
 		Context:          context.Background(),
 	})
 
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
-	logrus.WithFields(logrus.Fields{"Name":do.Name, "ID":container.ID}).Info(this.Name)
+	logrus.WithFields(logrus.Fields{"Name": do.Name, "ID": container.ID}).Info(this.Name)
 
 	return nil
+}
+
+// parseConfigrue 解析HCID配置文件
+// 1. clone 指定的git地址
+// 2. checkout 指定分支
+// 3. 判断是否存在.hcid.yml文件
+// 4. 解析.hcid.yml文件
+func (this *BuildAgent) parseConfigrue() (opt *HCIDOpt, err error) {
+	return nil, nil
 }
