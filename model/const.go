@@ -3,7 +3,7 @@
  * andy-zhangtao <ztao8607@gmail.com>
  */
 
-package models
+package model
 
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/3/7.
 const (
@@ -16,4 +16,5 @@ const (
 
 const (
 	GitAgentTopic = "HICD_GitAgent"
+	TAGQUEUE      = "HUM_GIT_TAG"
 )

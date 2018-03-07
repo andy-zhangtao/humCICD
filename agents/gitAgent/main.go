@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/andy-zhangtao/humCICD/agents/models"
+	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/nsqio/go-nsq"
 	"github.com/urfave/cli"
 	"gopkg.in/src-d/go-git.v4"
@@ -30,25 +30,25 @@ var producer *nsq.Producer
 
 func nsqInit() {
 	var err error
-	nsq_endpoint := os.Getenv(models.EnvNsqdEndpoint)
+	nsq_endpoint := os.Getenv(model.EnvNsqdEndpoint)
 	if nsq_endpoint == "" {
-		logrus.Error(fmt.Sprintf("[%s] Empty", models.EnvNsqdEndpoint))
+		logrus.Error(fmt.Sprintf("[%s] Empty", model.EnvNsqdEndpoint))
 		os.Exit(-1)
 	}
-	logrus.WithFields(logrus.Fields{"Connect NSQ": nsq_endpoint,}).Info(models.GitAgent)
+	logrus.WithFields(logrus.Fields{"Connect NSQ": nsq_endpoint,}).Info(model.GitAgent)
 	producer, err = nsq.NewProducer(nsq_endpoint, nsq.NewConfig())
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"Connect Nsq Error": err,}).Error(models.GitAgent)
+		logrus.WithFields(logrus.Fields{"Connect Nsq Error": err,}).Error(model.GitAgent)
 		os.Exit(-1)
 	}
 
 	err = producer.Ping()
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"Ping Nsq Error": err,}).Error(models.GitAgent)
+		logrus.WithFields(logrus.Fields{"Ping Nsq Error": err,}).Error(model.GitAgent)
 		os.Exit(-1)
 	}
 
-	logrus.WithFields(logrus.Fields{"Connect Nsq Succes": producer.String()}).Info(models.GitAgent)
+	logrus.WithFields(logrus.Fields{"Connect Nsq Succes": producer.String()}).Info(model.GitAgent)
 }
 
 func valid() {
@@ -95,7 +95,7 @@ func parseAction(c *cli.Context) error {
 	return sendConfigure(configrue)
 }
 
-func cloneGit(url, name string) (configure *models.HicdConfigure, err error) {
+func cloneGit(url, name string) (configure *model.HicdConfigure, err error) {
 	_, err = git.PlainClone("/tmp/"+name, false, &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
@@ -119,8 +119,8 @@ func parseName(url string) (name string) {
 
 // parseConfigrue 解析工程中的.hicd文件
 // path 工程路径
-func parseConfigure(path string) (configure *models.HicdConfigure, err error) {
-	configure = new(models.HicdConfigure)
+func parseConfigure(path string) (configure *model.HicdConfigure, err error) {
+	configure = new(model.HicdConfigure)
 	fileName := path + "/.hicd"
 	_, err = os.Open(fileName)
 	if os.IsNotExist(err) {
@@ -142,10 +142,10 @@ func parseConfigure(path string) (configure *models.HicdConfigure, err error) {
 }
 
 // sendConfigure 发送配置消息
-func sendConfigure(configure *models.HicdConfigure) error {
+func sendConfigure(configure *model.HicdConfigure) error {
 	type HicdConfigure struct {
-		Name      string               `json:"name"`
-		Configrue models.HicdConfigure `json:"configrue"`
+		Name      string              `json:"name"`
+		Configrue model.HicdConfigure `json:"configrue"`
 	}
 
 	hc := HicdConfigure{
@@ -158,5 +158,5 @@ func sendConfigure(configure *models.HicdConfigure) error {
 		return err
 	}
 
-	return producer.Publish(models.GitAgentTopic, data)
+	return producer.Publish(model.GitAgentTopic, data)
 }

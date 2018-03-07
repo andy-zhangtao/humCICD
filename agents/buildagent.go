@@ -106,7 +106,7 @@ func (this *BuildAgent) Run() {
 // 从github获取指定版本的代码进行构建
 func (this *BuildAgent) handleBuild() {
 	/*解析HCID配置数据*/
-	parseConfigrue
+	//parseConfigrue
 }
 
 // checkRun 检查是否具备运行环境

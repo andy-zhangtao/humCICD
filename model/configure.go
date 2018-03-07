@@ -3,8 +3,9 @@
  * andy-zhangtao <ztao8607@gmail.com>
  */
 
-package models
+package model
 
+//Write by zhangtao<ztao8607@gmail.com> . In 2018/3/7.
 type HicdConfigure struct {
 	Version string     `json:"version"` //当前配置文件版本
 	Kind    string     `json:"kind"`    //语言类型
