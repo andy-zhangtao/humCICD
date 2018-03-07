@@ -15,6 +15,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/andy-zhangtao/humCICD/agents/models"
+	"github.com/nsqio/go-nsq"
 	"github.com/urfave/cli"
 	"gopkg.in/src-d/go-git.v4"
 )
@@ -24,11 +25,44 @@ gitAgent 从Github上面拉取指定工程
 然后解析工程中HICD的配置数据
 */
 var giturl string
+var name string
+var producer *nsq.Producer
 
+func nsqInit() {
+	var err error
+	nsq_endpoint := os.Getenv(models.EnvNsqdEndpoint)
+	if nsq_endpoint == "" {
+		logrus.Error(fmt.Sprintf("[%s] Empty", models.EnvNsqdEndpoint))
+		os.Exit(-1)
+	}
+	logrus.WithFields(logrus.Fields{"Connect NSQ": nsq_endpoint,}).Info(models.GitAgent)
+	producer, err = nsq.NewProducer(nsq_endpoint, nsq.NewConfig())
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"Connect Nsq Error": err,}).Error(models.GitAgent)
+		os.Exit(-1)
+	}
+
+	err = producer.Ping()
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"Ping Nsq Error": err,}).Error(models.GitAgent)
+		os.Exit(-1)
+	}
+
+	logrus.WithFields(logrus.Fields{"Connect Nsq Succes": producer.String()}).Info(models.GitAgent)
+}
+
+func valid() {
+	if giturl == "" || name == "" {
+		logrus.Error("git value or name value empty")
+		os.Exit(-1)
+	}
+}
 func main() {
 	app := cli.NewApp()
 	app.Name = "gitAgent"
 	app.Usage = "clone & parse HICD configure"
+	app.Version = "v0.1.0"
+	app.Author = "andy zhang"
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -36,12 +70,12 @@ func main() {
 			Usage:       "The Git URL",
 			Destination: &giturl,
 		},
+		cli.StringFlag{
+			Name:        "name, n",
+			Usage:       "Hicd ID",
+			Destination: &name,
+		},
 	}
-
-	//app.Action = func(c *cli.Context) error {
-	//	fmt.Println("boom! I say!" + giturl)
-	//	return nil
-	//}
 
 	app.Action = parseAction
 	err := app.Run(os.Args)
@@ -51,26 +85,28 @@ func main() {
 }
 
 func parseAction(c *cli.Context) error {
-	err := cloneGit(giturl, parseName(giturl))
+	nsqInit()
+	valid()
+	configrue, err := cloneGit(giturl, parseName(giturl))
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return sendConfigure(configrue)
 }
 
-func cloneGit(url, name string) (err error) {
+func cloneGit(url, name string) (configure *models.HicdConfigure, err error) {
 	_, err = git.PlainClone("/tmp/"+name, false, &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
 	})
 
-	hc, err := parseConfigure("/tmp/" + name)
+	configure, err = parseConfigure("/tmp/" + name)
 	if err != nil {
 		return
 	}
 
-	logrus.WithFields(logrus.Fields{"configrue": hc}).Info("gitAgent")
+	logrus.WithFields(logrus.Fields{"configrue": configure}).Info("gitAgent")
 	return
 }
 
@@ -103,4 +139,24 @@ func parseConfigure(path string) (configure *models.HicdConfigure, err error) {
 		return nil, err
 	}
 	return
+}
+
+// sendConfigure 发送配置消息
+func sendConfigure(configure *models.HicdConfigure) error {
+	type HicdConfigure struct {
+		Name      string               `json:"name"`
+		Configrue models.HicdConfigure `json:"configrue"`
+	}
+
+	hc := HicdConfigure{
+		Name:      name,
+		Configrue: *configure,
+	}
+
+	data, err := json.Marshal(&hc)
+	if err != nil {
+		return err
+	}
+
+	return producer.Publish(models.GitAgentTopic, data)
 }
