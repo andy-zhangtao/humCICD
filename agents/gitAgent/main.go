@@ -18,6 +18,7 @@ import (
 	"github.com/nsqio/go-nsq"
 	"github.com/urfave/cli"
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 /*
@@ -26,6 +27,7 @@ gitAgent 从Github上面拉取指定工程
 */
 var giturl string
 var name string
+var branch string
 var producer *nsq.Producer
 
 func nsqInit() {
@@ -52,8 +54,8 @@ func nsqInit() {
 }
 
 func valid() {
-	if giturl == "" || name == "" {
-		logrus.Error("git value or name value empty")
+	if giturl == "" || name == "" || branch == "" {
+		logrus.Error("git value or name value or branch value empty")
 		os.Exit(-1)
 	}
 }
@@ -69,6 +71,11 @@ func main() {
 			Name:        "git, g",
 			Usage:       "The Git URL",
 			Destination: &giturl,
+		},
+		cli.StringFlag{
+			Name:        "branch, b",
+			Usage:       "The Git Branch Name",
+			Destination: &branch,
 		},
 		cli.StringFlag{
 			Name:        "name, n",
@@ -87,7 +94,7 @@ func main() {
 func parseAction(c *cli.Context) error {
 	nsqInit()
 	valid()
-	configrue, err := cloneGit(giturl, parseName(giturl))
+	configrue, err := cloneGit(giturl, parseName(giturl), branch)
 	if err != nil {
 		return err
 	}
@@ -95,12 +102,18 @@ func parseAction(c *cli.Context) error {
 	return sendConfigure(configrue)
 }
 
-func cloneGit(url, name string) (configure *model.HicdConfigure, err error) {
+func cloneGit(url, name, branch string) (configure *model.HicdConfigure, err error) {
+	logrus.WithFields(logrus.Fields{"ref": plumbing.ReferenceName("refs/heads/" + branch)}).Info(model.GitAgent)
 	_, err = git.PlainClone("/tmp/"+name, false, &git.CloneOptions{
-		URL:      url,
-		Progress: os.Stdout,
+		URL:           url,
+		Progress:      os.Stdout,
+		ReferenceName: plumbing.ReferenceName("refs/heads/" + branch),
 	})
 
+	if err != nil {
+		return
+	}
+	
 	configure, err = parseConfigure("/tmp/" + name)
 	if err != nil {
 		return
