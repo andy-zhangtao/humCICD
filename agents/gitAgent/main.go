@@ -113,7 +113,7 @@ func cloneGit(url, name, branch string) (configure *model.HicdConfigure, err err
 	if err != nil {
 		return
 	}
-	
+
 	configure, err = parseConfigure("/tmp/" + name)
 	if err != nil {
 		return
@@ -156,13 +156,11 @@ func parseConfigure(path string) (configure *model.HicdConfigure, err error) {
 
 // sendConfigure 发送配置消息
 func sendConfigure(configure *model.HicdConfigure) error {
-	type HicdConfigure struct {
-		Name      string              `json:"name"`
-		Configrue model.HicdConfigure `json:"configrue"`
-	}
 
-	hc := HicdConfigure{
+	hc := model.GitConfigure{
 		Name:      name,
+		GitUrl:    giturl,
+		Branch:    branch,
 		Configrue: *configure,
 	}
 

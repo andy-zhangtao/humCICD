@@ -11,10 +11,12 @@ const (
 )
 
 const (
-	GitAgent = "gitAgent"
+	GitAgent   = "gitAgent"
+	BuildAgent = "buildAgent"
 )
 
 const (
 	GitAgentTopic = "HICD_GitAgent"
+	HicdErrTopic  = "HICD_Error"
 	TAGQUEUE      = "HUM_GIT_TAG"
 )

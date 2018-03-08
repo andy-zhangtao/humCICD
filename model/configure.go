@@ -17,3 +17,10 @@ type HiDepend struct {
 	Exec string   `json:"exec"` //执行命令内容, 如果是docker则是镜像名称, 如果是shell，则是shell 命令
 	Args []string `json:"args"` //命令参数
 }
+
+type GitConfigure struct {
+	Name      string        `json:"name"`
+	GitUrl    string        `json:"git_url"`
+	Branch    string        `json:"branch"`
+	Configrue HicdConfigure `json:"configrue"`
+}

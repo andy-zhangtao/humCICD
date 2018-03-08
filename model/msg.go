@@ -13,3 +13,8 @@ type TagEventMsg struct {
 	Tag    string `json:"tag"`
 	Branch string `json:"branch"`
 }
+
+type ErrEventMsg struct {
+	Name string `json:"name"`
+	Err  string `json:"err"`
+}

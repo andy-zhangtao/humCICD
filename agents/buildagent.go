@@ -133,6 +133,11 @@ func checkDocker() (client *docker.Client, err error) {
 	return
 }
 
+func (this *BuildAgent) buildGitAgentContainer(msg *model.TagEventMsg) error {
+	logrus.WithFields(logrus.Fields{"Build GitAgent Container": msg.GitURL, "Branch": msg.Branch, "Tag": msg.Tag}).Info(this.Name)
+	return nil
+}
+
 // buildContainer 按照配置文件中的约束关系进行容器创建
 func (this *BuildAgent) buildContainer(do DockerOpts) error {
 	pb := make(map[docker.Port][]docker.PortBinding)
