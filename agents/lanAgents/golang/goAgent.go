@@ -100,7 +100,7 @@ func buildAction(c *cli.Context) error {
 	}
 
 	/*执行build*/
-	if err = buildProject(path); err != nil {
+	if out, err := buildProject(path); err != nil {
 
 		data, err := json.Marshal(model.ErrEventMsg{
 			Name: name,
@@ -111,6 +111,8 @@ func buildAction(c *cli.Context) error {
 		}
 		producer.Publish(model.HicdErrTopic, data)
 		return err
+	} else {
+		producer.Publish(model.HicdOutTopic, out)
 	}
 
 	return nil
@@ -132,11 +134,11 @@ func cloneGit(url, name, branch string) (path string, err error) {
 	return
 }
 
-func buildProject(path string) error {
+func buildProject(path string) (out []byte, err error) {
 	var cmd *exec.Cmd
-	err := os.Chdir(path)
+	err = os.Chdir(path)
 	if err != nil {
-		return err
+		return
 	}
 	if _, err := os.Stat(path + "/Makefile"); os.IsExist(err) {
 		/*存在Makefile*/
@@ -148,31 +150,33 @@ func buildProject(path string) error {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return err
+		return
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return err
+		return
 	}
 
-	if err := cmd.Start(); err != nil {
-		return err
+	if err = cmd.Start(); err != nil {
+		return
 	}
-	out, err := ioutil.ReadAll(stdout)
+	out, err = ioutil.ReadAll(stdout)
 	if err != nil {
-		return err
+		return
 	}
 
 	derr, err := ioutil.ReadAll(stderr)
 	if err != nil {
-		return err
+		return
 	}
 
 	logrus.Println(string(out))
 	if len(derr) > 0 {
 		logrus.Errorln(string(derr))
-		return errors.New(string(derr))
+		err = errors.New(string(derr))
+		return
 	}
-	return nil
+
+	return
 }

@@ -17,6 +17,9 @@ const (
 
 const (
 	GitAgentTopic = "HICD_GitAgent"
-	HicdErrTopic  = "HICD_Error"
-	TAGQUEUE      = "HUM_GIT_TAG"
+	/*HicdErrTopic 错误信息*/
+	HicdErrTopic = "HICD_Error"
+	/*HicdOutTopic 正常输出信息*/
+	HicdOutTopic = "HICD_Output"
+	TAGQUEUE     = "HUM_GIT_TAG"
 )
