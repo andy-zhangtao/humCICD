@@ -7,12 +7,58 @@ package docker
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path"
 	"strings"
 	"testing"
 )
 
+func TestAuthConfigurationSearchPath(t *testing.T) {
+	t.Parallel()
+	var testData = []struct {
+		dockerConfigEnv string
+		homeEnv         string
+		expectedPaths   []string
+	}{
+		{"", "", []string{}},
+		{"", "home", []string{path.Join("home", ".docker", "config.json"), path.Join("home", ".dockercfg")}},
+		{"docker_config", "", []string{path.Join("docker_config", "config.json")}},
+		{"a", "b", []string{path.Join("a", "config.json"), path.Join("b", ".docker", "config.json"), path.Join("b", ".dockercfg")}},
+	}
+	for _, tt := range testData {
+		paths := cfgPaths(tt.dockerConfigEnv, tt.homeEnv)
+		if got, want := strings.Join(paths, ","), strings.Join(tt.expectedPaths, ","); got != want {
+			t.Errorf("cfgPaths: wrong result. Want: %s. Got: %s", want, got)
+		}
+	}
+}
+
+func TestAuthConfigurationsFromFile(t *testing.T) {
+	t.Parallel()
+	tmpDir, err := ioutil.TempDir("", "go-dockerclient-auth-test")
+	if err != nil {
+		t.Errorf("Unable to create temporary directory for TestAuthConfigurationsFromFile: %s", err)
+	}
+	defer os.RemoveAll(tmpDir)
+	authString := base64.StdEncoding.EncodeToString([]byte("user:pass"))
+	content := fmt.Sprintf(`{"auths":{"foo": {"auth": "%s"}}}`, authString)
+	configFile := path.Join(tmpDir, "docker_config")
+	if err = ioutil.WriteFile(configFile, []byte(content), 0600); err != nil {
+		t.Errorf("Error writing auth config for TestAuthConfigurationsFromFile: %s", err)
+	}
+	auths, err := NewAuthConfigurationsFromFile(configFile)
+	if err != nil {
+		t.Errorf("Error calling NewAuthConfigurationsFromFile: %s", err)
+	}
+	if _, hasKey := auths.Configs["foo"]; !hasKey {
+		t.Errorf("Returned auths did not include expected auth key foo")
+	}
+}
+
 func TestAuthLegacyConfig(t *testing.T) {
+	t.Parallel()
 	auth := base64.StdEncoding.EncodeToString([]byte("user:pa:ss"))
 	read := strings.NewReader(fmt.Sprintf(`{"docker.io":{"auth":"%s","email":"user@example.com"}}`, auth))
 	ac, err := NewAuthConfigurations(read)
@@ -38,6 +84,7 @@ func TestAuthLegacyConfig(t *testing.T) {
 }
 
 func TestAuthBadConfig(t *testing.T) {
+	t.Parallel()
 	auth := base64.StdEncoding.EncodeToString([]byte("userpass"))
 	read := strings.NewReader(fmt.Sprintf(`{"docker.io":{"auth":"%s","email":"user@example.com"}}`, auth))
 	ac, err := NewAuthConfigurations(read)
@@ -49,7 +96,31 @@ func TestAuthBadConfig(t *testing.T) {
 	}
 }
 
+func TestAuthMixedWithKeyChain(t *testing.T) {
+	t.Parallel()
+	auth := base64.StdEncoding.EncodeToString([]byte("user:pass"))
+	read := strings.NewReader(fmt.Sprintf(`{"auths":{"docker.io":{},"localhost:5000":{"auth":"%s"}},"credsStore":"osxkeychain"}`, auth))
+	ac, err := NewAuthConfigurations(read)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, ok := ac.Configs["localhost:5000"]
+	if !ok {
+		t.Error("NewAuthConfigurations: Expected Configs to contain localhost:5000")
+	}
+	if got, want := c.Username, "user"; got != want {
+		t.Errorf(`AuthConfigurations.Configs["docker.io"].Username: wrong result. Want %q. Got %q`, want, got)
+	}
+	if got, want := c.Password, "pass"; got != want {
+		t.Errorf(`AuthConfigurations.Configs["docker.io"].Password: wrong result. Want %q. Got %q`, want, got)
+	}
+	if got, want := c.ServerAddress, "localhost:5000"; got != want {
+		t.Errorf(`AuthConfigurations.Configs["localhost:5000"].ServerAddress: wrong result. Want %q. Got %q`, want, got)
+	}
+}
+
 func TestAuthAndOtherFields(t *testing.T) {
+	t.Parallel()
 	auth := base64.StdEncoding.EncodeToString([]byte("user:pass"))
 	read := strings.NewReader(fmt.Sprintf(`{
 		"auths":{"docker.io":{"auth":"%s","email":"user@example.com"}},
@@ -78,6 +149,7 @@ func TestAuthAndOtherFields(t *testing.T) {
 	}
 }
 func TestAuthConfig(t *testing.T) {
+	t.Parallel()
 	auth := base64.StdEncoding.EncodeToString([]byte("user:pass"))
 	read := strings.NewReader(fmt.Sprintf(`{"auths":{"docker.io":{"auth":"%s","email":"user@example.com"}}}`, auth))
 	ac, err := NewAuthConfigurations(read)
@@ -103,6 +175,7 @@ func TestAuthConfig(t *testing.T) {
 }
 
 func TestAuthCheck(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	if _, err := client.AuthCheck(nil); err == nil {
