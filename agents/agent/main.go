@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/andy-zhangtao/humCICD/agents"
 	"github.com/andy-zhangtao/humCICD/model"
 )
 
@@ -18,15 +17,15 @@ const ModuleName = "Agent"
 const BuildAgent = "buildagent"
 
 func main() {
-	if os.Getenv(model.EnvNsqdEndpoint) == ""{
-		logrus.Panic(model.EnvNsqdEndpoint+" Empty")
+	if os.Getenv(model.EnvNsqdEndpoint) == "" {
+		logrus.Panic(model.EnvNsqdEndpoint + " Empty")
 	}
 
-	logrus.WithFields(logrus.Fields{"HUM-AGENT":"START"}).Info(ModuleName)
+	logrus.WithFields(logrus.Fields{"HUM-AGENT": "START"}).Info(ModuleName)
 	switch strings.ToLower(os.Getenv("HUM_AGENT")) {
 	case BuildAgent:
-		ba := agents.BuildAgent{Name:BuildAgent,NsqEndpoint:os.Getenv(model.EnvNsqdEndpoint)}
-		ba.Run()
+		//ba := agents.BuildAgent{Name:BuildAgent,NsqEndpoint:os.Getenv(model.EnvNsqdEndpoint)}
+		//ba.Run()
 	}
 
 }

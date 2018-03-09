@@ -6,15 +6,16 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 
+	"docker.io/go-docker"
 	"github.com/Sirupsen/logrus"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
-	"github.com/fsouza/go-dockerclient"
 	"github.com/nsqio/go-nsq"
 )
 
@@ -101,12 +102,12 @@ func (this *BuildAgent) checkRun() error {
 }
 
 func checkDocker() (client *docker.Client, err error) {
-	client, err = docker.NewClientFromEnv()
+	cli, err := docker.NewEnvClient()
 	if err != nil {
-		return
+		panic(err)
 	}
 
-	err = client.Ping()
+	_, err = cli.Ping(context.Background())
 	return
 }
 

@@ -2,10 +2,22 @@
 .PHONY: build
 name = humcicd
 
-build-client: agents/*.go agents/agent/*.go
-	cd agents/agent;go build -ldflags "-X main._VERSION_=$(shell date +%Y%m%d-%H%M%S)" -o $(name)-agent
+build-goAgent:
+	cd agents/lanAgents/golang; make
 
-build:
+build-buildAgent:
+	cd agents/buildAgent; make
+
+build-gitAgent:
+	cd agents/gitAgent; make
+
+build-Agent:
+	cd agents/agent; make
+
+build-client: build-goAgent build-buildAgent build-gitAgent build-Agent
+	echo "Build Agents"
+
+build: build-client
 	go build -ldflags "-X main._VERSION_=$(shell date +%Y%m%d-%H%M%S)" -o $(name)
 
 run: build

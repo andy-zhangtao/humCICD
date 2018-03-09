@@ -5,7 +5,7 @@
 
 package model
 
-import "github.com/fsouza/go-dockerclient"
+import "docker.io/go-docker"
 
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/3/8.
 
