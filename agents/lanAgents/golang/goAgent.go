@@ -6,10 +6,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 
@@ -94,25 +93,37 @@ func main() {
 func buildAction(c *cli.Context) error {
 	nsqInit()
 	valid()
+
 	path, err := cloneGit(giturl, utils.ParsePath(giturl), branch)
 	if err != nil {
 		return err
 	}
 
+	defer logrus.WithFields(logrus.Fields{path: "Handler End"}).Info(model.BuildAgent)
+
 	/*执行build*/
 	if out, err := buildProject(path); err != nil {
 
-		data, err := json.Marshal(model.ErrEventMsg{
-			Name: name,
-			Err:  err.Error(),
+		data, err := json.Marshal(model.OutEventMsg{
+			Name:   name,
+			Result: model.BuildFaild,
+			Out:    fmt.Sprintf("ERR:[%s]\nLog:\n%s ", err.Error(), string(out)),
 		})
 		if err != nil {
 			return err
 		}
-		producer.Publish(model.HicdErrTopic, data)
+		producer.Publish(model.HicdOutTopic, data)
 		return err
 	} else {
-		producer.Publish(model.HicdOutTopic, out)
+		data, err := json.Marshal(model.OutEventMsg{
+			Name:   name,
+			Result: model.BuildSuc,
+			Out:    fmt.Sprintf("Log:%s ", string(out)),
+		})
+		if err != nil {
+			return err
+		}
+		producer.Publish(model.HicdOutTopic, data)
 	}
 
 	return nil
@@ -134,53 +145,37 @@ func cloneGit(url, name, branch string) (path string, err error) {
 	return
 }
 
-func buildProject(path string) (out []byte, err error) {
+func buildProject(path string) (result []byte, err error) {
+	var out, stderr bytes.Buffer
 	var cmd *exec.Cmd
 	err = os.Chdir(path)
 	if err != nil {
+		result = []byte(fmt.Sprintf("%s \n %s", out.String(), err.Error()))
 		return
 	}
-	if _, err := os.Stat(path + "/Makefile"); os.IsExist(err) {
-		/*存在Makefile*/
-		cmd = exec.Command("make")
+
+	_, err = os.Stat(path + "/Makefile")
+	if err != nil {
+		if os.IsNotExist(err) {
+			logrus.Println("Not Has Makefile")
+			cmd = exec.Command("go", []string{"build", "-v"}...)
+		}
 	} else {
-		/*不存在Makefile*/
-		cmd = exec.Command("go", "build")
+		logrus.Println("Has Makefile")
+		cmd = exec.Command("make", "all")
 	}
 
-	stdout, err := cmd.StdoutPipe()
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	//
+	//out, err := cmd.CombinedOutput()
+	err = cmd.Run()
 	if err != nil {
+		result = []byte(fmt.Sprintf("%s\n%s\n%s", out.String(), stderr.String(), err.Error()))
 		return
 	}
 
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return
-	}
-
-	if err = cmd.Start(); err != nil {
-		return
-	}
-	out, err = ioutil.ReadAll(stdout)
-	if err != nil {
-		return
-	}
-
-	derr, err := ioutil.ReadAll(stderr)
-	if err != nil {
-		return
-	}
-
-	if len(out) == 0 {
-		out = []byte("Succ")
-	}
-
-	logrus.Println(string(out))
-	if len(derr) > 0 {
-		logrus.Errorln(string(derr))
-		err = errors.New(string(derr))
-		return
-	}
+	result = []byte(fmt.Sprintf("Output:\n%s \nErr:\n%s \n", out.String(), stderr.String()))
 
 	return
 }

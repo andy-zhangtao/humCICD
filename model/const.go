@@ -13,6 +13,7 @@ const (
 const (
 	GitAgent   = "gitAgent"
 	BuildAgent = "buildAgent"
+	EchoAgent  = "echoAgent"
 )
 
 const (
@@ -22,4 +23,9 @@ const (
 	/*HicdOutTopic 正常输出信息*/
 	HicdOutTopic = "HICD_Output"
 	TAGQUEUE     = "HUM_GIT_TAG"
+)
+
+const (
+	BuildSuc   = iota
+	BuildFaild
 )

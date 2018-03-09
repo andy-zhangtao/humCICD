@@ -1,10 +1,10 @@
 
 .PHONY: build
-name = goagent
+name = echoagent
 
 build:
 	go build -ldflags "-X main._VERSION_=$(shell date +%Y%m%d-%H%M%S)" -o $(name)
-	mv $(name) ../../../bin
+	mv $(name) ../../bin
 
 run: build
 	./$(name)
