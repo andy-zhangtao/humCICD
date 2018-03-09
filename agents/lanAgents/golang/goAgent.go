@@ -171,6 +171,10 @@ func buildProject(path string) (out []byte, err error) {
 		return
 	}
 
+	if len(out) == 0 {
+		out = []byte("Succ")
+	}
+
 	logrus.Println(string(out))
 	if len(derr) > 0 {
 		logrus.Errorln(string(derr))
