@@ -31,8 +31,8 @@
 
 [[constraint]]
   name = "github.com/fsouza/go-dockerclient"
-  version = "1.2.0"
+  version = "1.1.0"
 
 [[override]]
   name = "github.com/docker/docker"
-  version = "v17.05.0-ce-rc3"
+  branch = "master"
