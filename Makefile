@@ -20,6 +20,9 @@ build-client: build-goAgent build-buildAgent build-gitAgent build-Agent
 build: build-client
 	go build -ldflags "-X main._VERSION_=$(shell date +%Y%m%d-%H%M%S)" -o $(name)
 
+all: build
+	@echo "Build HICD"
+
 run: build
 	./$(name)
 
