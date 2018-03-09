@@ -35,4 +35,4 @@
 
 [[override]]
   name = "github.com/docker/docker"
-  branch = "master"
+  branch = "1.13.1"
