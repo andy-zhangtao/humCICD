@@ -50,3 +50,7 @@ docker run \
         -e HICD_NSQD_ENDPOINT=127.0.0.1:4150 \
         vikings/gitagent
 ```
+
+## Architecture
+
+![HICD Architecture](https://github.com/andy-zhangtao/blogpic/blob/master/hicd.png?raw=true)
