@@ -34,3 +34,8 @@ const (
 	BuildSuc   = iota
 	BuildFaild
 )
+
+
+const(
+	GitImage = "vikings/gitagent:latest"
+)
