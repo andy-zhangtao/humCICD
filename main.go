@@ -93,9 +93,10 @@ func trigger(w http.ResponseWriter, r *http.Request) {
 		GitURL: tagEvent.Repository.Clone_url,
 		Tag:    branch[0],
 		Branch: branch[1],
+		Name:   tagEvent.Repository.Name,
 	}
 
-	m, err  := json.Marshal(msg)
+	m, err := json.Marshal(msg)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"Marshal Body Error": err}).Error(ModuleName)
 		return

@@ -4,7 +4,8 @@ My CI/CD framework
 ## Agents
 
 - **hicd** 接受Github发送的事件通知
-- **gitAgent** 接受HICD转发的GitHub通知消息,解析工程的配置信息
+- **trafficAgent** 接受HICD转发的GitHub通知消息,并创建gitAgent
+- **gitAgent** 解析工程的配置信息
 - **buildAgent** 接受gitAgent解析后的工程配置信息,根据配置信息选择相对应的语言处理模块
 - **goAgent** 构建Golang工程的Agent
 - **echoAgent** 接受语言构建模块返回的日志信息,并通过邮件提醒用户
@@ -17,6 +18,7 @@ My CI/CD framework
 - vikings/buildagent
 - vikings/goagent
 - vikings/echoagent
+- vikings/trafficagent
 
 ## How to run hicd
 
@@ -44,11 +46,12 @@ docker run \
 - **gitagent**
 ```
 docker run \
-        --name gitagent \
+        --name trafficagent \
         --log-driver=json-file \
         --net host \
         -e HICD_NSQD_ENDPOINT=127.0.0.1:4150 \
-        vikings/gitagent
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        vikings/trafficagent
 ```
 
 ## Architecture

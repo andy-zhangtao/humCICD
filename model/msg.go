@@ -12,6 +12,7 @@ type TagEventMsg struct {
 	GitURL string `json:"git_url"`
 	Tag    string `json:"tag"`
 	Branch string `json:"branch"`
+	Name   string `json:"name"`
 }
 
 type OutEventMsg struct {

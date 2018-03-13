@@ -8,16 +8,17 @@ package model
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/3/7.
 const (
 	EnvNsqdEndpoint = "HICD_NSQD_ENDPOINT"
-	EnvEmailHost = "HICD_EMAIL_HOST"
-	EnvEmailUser = "HICD_EMAIL_USER"
-	EnvEmailPass = "HICD_EMAIL_PASS"
-	EnvEmailDest = "HICD_EMAIL_DEST"
+	EnvEmailHost    = "HICD_EMAIL_HOST"
+	EnvEmailUser    = "HICD_EMAIL_USER"
+	EnvEmailPass    = "HICD_EMAIL_PASS"
+	EnvEmailDest    = "HICD_EMAIL_DEST"
 )
 
 const (
-	GitAgent   = "gitAgent"
-	BuildAgent = "buildAgent"
-	EchoAgent  = "echoAgent"
+	GitAgent     = "gitAgent"
+	BuildAgent   = "buildAgent"
+	EchoAgent    = "echoAgent"
+	TrafficAgent = "trafficAgent"
 )
 
 const (
