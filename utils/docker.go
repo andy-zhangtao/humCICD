@@ -44,7 +44,7 @@ func buildContainer(cli *docker.Client, do model.DockerOpts) error {
 		Env:          env,
 		Cmd:          strings.Split(do.Cmd, " "),
 	}, &container.HostConfig{
-	//AutoRemove: true,
+		AutoRemove: true,
 	}, &network.NetworkingConfig{}, do.Name)
 
 	if err != nil {

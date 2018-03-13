@@ -35,7 +35,7 @@ const (
 	BuildFaild
 )
 
-
-const(
+const (
 	GitImage = "vikings/gitagent:latest"
+	GoImage  = "vikings/goagent:latest"
 )
