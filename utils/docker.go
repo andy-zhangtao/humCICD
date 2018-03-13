@@ -7,8 +7,11 @@ package utils
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"docker.io/go-docker"
+	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
 	"docker.io/go-docker/api/types/network"
 	"github.com/Sirupsen/logrus"
@@ -28,38 +31,21 @@ func CreateContainer(opt model.BuildOpts) error {
 }
 
 func buildContainer(cli *docker.Client, do model.DockerOpts) error {
-	//pb := make(map[docker.Port][]docker.PortBinding)
-	//if len(do.Port) > 0 {
-	//	for _, p := range do.Port {
-	//		pb[docker.Port(fmt.Sprintf("%d/tcp", p))] = []docker.PortBinding{
-	//			docker.PortBinding{HostIP: "0.0.0.0", HostPort: fmt.Sprintf("%d", p)},
-	//		}
-	//	}
-	//}
-
-	//logrus.WithFields(logrus.Fields{"Port": pb}).Info("BuildContainer")
+	var env []string
+	for key, value := range do.Env {
+		env = append(env, fmt.Sprintf("%s=%s", key, value))
+	}
 
 	container, err := cli.ContainerCreate(context.Background(), &container.Config{
 		Image:        do.Img,
 		Tty:          true,
 		AttachStdout: true,
 		AttachStderr: true,
+		Env:          env,
+		Cmd:          strings.Split(do.Cmd, " "),
 	}, &container.HostConfig{
-		AutoRemove: true,
+	//AutoRemove: true,
 	}, &network.NetworkingConfig{}, do.Name)
-	//container, err := cli.CreateContainer(docker.CreateContainerOptions{
-	//	Name: do.Name,
-	//	Config: &docker.Config{
-	//		Image:        do.Img,
-	//		AttachStdout: true,
-	//		AttachStdin:  true,
-	//	},
-	//	HostConfig: &docker.HostConfig{
-	//		PortBindings: pb,
-	//	},
-	//	NetworkingConfig: &docker.NetworkingConfig{},
-	//	Context:          context.Background(),
-	//})
 
 	if err != nil {
 		return err
@@ -67,5 +53,5 @@ func buildContainer(cli *docker.Client, do model.DockerOpts) error {
 
 	logrus.WithFields(logrus.Fields{"Name": do.Name, "ID": container.ID}).Info("BuildContainer")
 
-	return nil
+	return cli.ContainerStart(context.Background(), container.ID, types.ContainerStartOptions{})
 }

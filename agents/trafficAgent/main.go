@@ -85,18 +85,21 @@ func (this *TrafficAgent) Run() {
 
 // handlerGit 处理GitHub发来的通知消息
 func (this *TrafficAgent) handlerGit(msg model.TagEventMsg) {
-	/*1. 构建golang容器*/
+	logrus.WithFields(logrus.Fields{"Create gitAgent": fmt.Sprintf("-g %s -b %s -n %s", msg.GitURL, msg.Branch, msg.Name)}).Info(this.Name)
 	opt := model.BuildOpts{
 		Client: this.Client,
 		DockerOpt: []model.DockerOpts{model.DockerOpts{
-			Img: "vikings/gitagent",
-			Cmd: fmt.Sprintf("-g %s -b %s -n %s", msg.GitURL, msg.Branch, msg.Name),
+			Img:  "vikings/gitagent:latest",
+			Cmd:  fmt.Sprintf("-g %s -b %s -n %s", msg.GitURL, msg.Branch, msg.Name),
+			Name: "gitagent-" + msg.Name,
+			Env:  map[string]string{model.EnvNsqdEndpoint: os.Getenv(model.EnvNsqdEndpoint)},
 		}},
 	}
 	err := utils.CreateContainer(opt)
 	if err != nil {
 		logrus.Error(err)
 	}
+
 }
 
 // checkRun 检查是否具备运行环境
