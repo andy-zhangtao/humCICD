@@ -1,6 +1,6 @@
 
 .PHONY: build
-name = humcicd
+name = hicd
 
 build-goAgent:
 	cd agents/lanAgents/golang; make
@@ -28,5 +28,6 @@ run: build
 
 release: *.go *.md
 	GOOS=linux GOARCH=amd64 go build -ldflags "-X main._VERSION_=$(shell date +%Y%m%d)" -a -o $(name)
+	mv $(name) bin/$(name)
 	docker build -t vikings/$(name) .
 	docker push vikings/$(name)

@@ -17,3 +17,36 @@ My CI/CD framework
 - vikings/buildagent
 - vikings/goagent
 - vikings/echoagent
+
+## How to run hicd
+
+- **hicd**
+```
+docker run \
+        --name hicd \
+        --log-driver=json-file \
+        --net host \
+        -e HICD_NSQD_ENDPOINT=127.0.0.1:4150 \
+        vikings/hicd
+```
+
+- **buildAgent**
+```
+docker run \
+        --name buildagent \
+        --log-driver=json-file \
+        --net host \
+        -e HICD_NSQD_ENDPOINT=127.0.0.1:4150 \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        vikings/buildagent
+```
+
+- **gitagent**
+```
+docker run \
+        --name gitagent \
+        --log-driver=json-file \
+        --net host \
+        -e HICD_NSQD_ENDPOINT=127.0.0.1:4150 \
+        vikings/gitagent
+```

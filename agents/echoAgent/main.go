@@ -7,9 +7,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/andy-zhangtao/gogather/tools"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/nsqio/go-nsq"
 )
@@ -73,6 +75,18 @@ func (this *EchoAgent) Run() {
 func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
 	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Result": msg.Result}).Info(this.Name)
 	logrus.Print(msg.Out)
+	e := tools.Email{
+		Host:     os.Getenv(model.EnvEmailHost),
+		Username: os.Getenv(model.EnvEmailUser),
+		Password: os.Getenv(model.EnvEmailPass),
+		Port:     587,
+		Dest:     []string{os.Getenv(model.EnvEmailDest)},
+		Content:  msg.Out,
+		Header:   fmt.Sprintf("HICD [%s] Report", msg.Name),
+	}
+	if err := e.SendEmail(); err != nil {
+		logrus.Error(err)
+	}
 }
 
 /*EchoAgent 从NSQ读取所有成功或者失败的信息*/
