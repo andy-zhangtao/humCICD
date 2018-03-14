@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/andy-zhangtao/gogather/tools"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/nsqio/go-nsq"

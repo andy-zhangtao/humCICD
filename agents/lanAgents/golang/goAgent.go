@@ -12,7 +12,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/nsqio/go-nsq"

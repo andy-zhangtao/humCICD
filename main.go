@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/andy-zhangtao/humCICD/git"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/gorilla/mux"
