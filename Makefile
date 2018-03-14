@@ -2,6 +2,9 @@
 .PHONY: build
 name = hicd
 
+build-trafficAgent:
+	cd agents/trafficAgent; make
+
 build-goAgent:
 	cd agents/lanAgents/golang; make
 
@@ -11,10 +14,7 @@ build-buildAgent:
 build-gitAgent:
 	cd agents/gitAgent; make
 
-build-Agent:
-	cd agents/agent; make
-
-build-client: build-goAgent build-buildAgent build-gitAgent build-Agent
+build-client: build-goAgent build-buildAgent build-gitAgent build-trafficAgent
 	echo "Build Agents"
 
 build: build-client
@@ -22,6 +22,7 @@ build: build-client
 
 all: build
 	@echo "Build HICD"
+    mv $(name) bin
 
 run: build
 	./$(name)
