@@ -6,19 +6,16 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 
-	"docker.io/go-docker"
-	"docker.io/go-docker/api/types"
-	"docker.io/go-docker/api/types/filters"
-	"github.com/Sirupsen/logrus"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
+	"github.com/fsouza/go-dockerclient"
 	"github.com/nsqio/go-nsq"
+	"github.com/sirupsen/logrus"
 )
 
 var workerHome map[string]chan *nsq.Message
@@ -97,37 +94,37 @@ func (this *BuildAgent) checkRun() error {
 		return errors.New(fmt.Sprintf("Check Docker Error [%v]", err))
 	} else {
 		this.Client = cli
-		logrus.WithFields(logrus.Fields{"Docker Version": this.Client.ClientVersion()}).Info(this.Name)
+		logrus.WithFields(logrus.Fields{"Docker Version": this.Client.Version()}).Info(this.Name)
 	}
 
-	filter := filters.NewArgs()
-	filter.Add("reference", model.GoImage)
-	summry, err := this.Client.ImageList(context.Background(), types.ImageListOptions{
-		All:     false,
-		Filters: filter,
-	})
-	if err != nil {
-		logrus.WithFields(logrus.Fields{"List Image Error": err}).Error(this.Name)
-		return err
-	}
-
-	if len(summry) == 0 {
-		logrus.WithFields(logrus.Fields{"Is Has goAgent": false, "Pull Image": "..."}).Info(this.Name)
-		this.Client.ImagePull(context.Background(), model.GoImage, types.ImagePullOptions{})
-	} else {
-		logrus.WithFields(logrus.Fields{"Is Has goAgent": true}).Info(this.Name)
-	}
+	//filter := filters.NewArgs()
+	//filter.Add("reference", model.GoImage)
+	//summry, err := this.Client.ImageList(context.Background(), types.ImageListOptions{
+	//	All:     false,
+	//	Filters: filter,
+	//})
+	//if err != nil {
+	//	logrus.WithFields(logrus.Fields{"List Image Error": err}).Error(this.Name)
+	//	return err
+	//}
+	//
+	//if len(summry) == 0 {
+	//	logrus.WithFields(logrus.Fields{"Is Has goAgent": false, "Pull Image": "..."}).Info(this.Name)
+	//	this.Client.ImagePull(context.Background(), model.GoImage, types.ImagePullOptions{})
+	//} else {
+	//	logrus.WithFields(logrus.Fields{"Is Has goAgent": true}).Info(this.Name)
+	//}
 
 	return nil
 }
 
 func checkDocker() (client *docker.Client, err error) {
-	client, err = docker.NewEnvClient()
+	client, err = docker.NewClientFromEnv()
 	if err != nil {
 		panic(err)
 	}
 
-	_, err = client.Ping(context.Background())
+	//_, err = client.Ping(context.Background())
 	return
 }
 

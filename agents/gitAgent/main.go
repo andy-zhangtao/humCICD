@@ -13,7 +13,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/nsqio/go-nsq"
 	"github.com/urfave/cli"
