@@ -64,7 +64,7 @@
     "pkg/term",
     "pkg/term/windows"
   ]
-  revision = "9e1c4f9906176ee120398d1568e8ff395382d675"
+  revision = "ae7016427f8cba4e4d8fcb979d6ba313ee2c0702"
 
 [[projects]]
   name = "github.com/docker/go-connections"
@@ -182,6 +182,12 @@
   version = "v0.2.0"
 
 [[projects]]
+  name = "github.com/pelletier/go-toml"
+  packages = ["."]
+  revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
@@ -249,7 +255,7 @@
     "ssh/knownhosts",
     "ssh/terminal"
   ]
-  revision = "c4a91bd4f524f10d064139674cf55852e055ad01"
+  revision = "21652f85b0fdddb6c2b6b77a5beca5c5a908174a"
 
 [[projects]]
   branch = "master"
@@ -258,7 +264,7 @@
     "context",
     "context/ctxhttp"
   ]
-  revision = "892bf7b0c6e2f93b51166bf3882e50277fa5afc6"
+  revision = "e0c57d8f86c17f0724497efcb3bc617e82834821"
 
 [[projects]]
   branch = "master"
@@ -267,7 +273,7 @@
     "unix",
     "windows"
   ]
-  revision = "8c0ece68c28377f4c326d85b94f8df0dace46f80"
+  revision = "89ac7f292d17a339edab4de8efcba5d8672ff661"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -350,6 +356,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b99ec8a800fb9b85b9d0d08dc6062e7bc6b95ef95e0ec264a0948d4493255569"
+  inputs-digest = "1dac73a946346d37e19a2c6d86971e9d9936f3fec7376f0ea4e45932a2c55b01"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -16,6 +16,7 @@ import (
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/nsqio/go-nsq"
+	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"gopkg.in/src-d/go-git.v4"
@@ -104,8 +105,8 @@ func parseAction(c *cli.Context) error {
 	return sendConfigure(configrue)
 }
 
-func cloneGit(url, name, branch string) (configure *model.HicdConfigure, err error) {
-	logrus.WithFields(logrus.Fields{"ref": plumbing.ReferenceName("refs/heads/" + branch)}).Info(model.GitAgent)
+func cloneGit(url, name, branch string) (configure *model.Config, err error) {
+	logrus.WithFields(logrus.Fields{"ref": plumbing.ReferenceName("refs/remotes/origin/" + branch)}).Info(model.GitAgent)
 	_, err = git.PlainClone("/tmp/"+name, false, &git.CloneOptions{
 		URL:           url,
 		Progress:      os.Stdout,
@@ -121,7 +122,7 @@ func cloneGit(url, name, branch string) (configure *model.HicdConfigure, err err
 		return
 	}
 
-	log.Output(model.GitAgent, logrus.Fields{"msg": configure}, logrus.ErrorLevel).Report()
+	log.Output(model.GitAgent, logrus.Fields{"msg": fmt.Sprintf("title:[%s] name:[%s] kind:[%s]", configure.Title, configure.Build.Name, configure.Build.Kind)}, logrus.ErrorLevel).Report()
 	//logrus.WithFields(logrus.Fields{"configrue": configure}).Info("gitAgent")
 	return
 }
@@ -129,28 +130,28 @@ func cloneGit(url, name, branch string) (configure *model.HicdConfigure, err err
 func parseName(url string) (name string) {
 	gitName := strings.Split(url, "/")
 	name = strings.Split(gitName[len(gitName)-1], ".")[0]
-	fmt.Printf("GitAgent Will Clone [%s]\n", name)
+	log.Output(model.GitAgent, logrus.Fields{"Process": fmt.Sprintf("GitAgent Will Clone [%s]\n", name)}, logrus.InfoLevel)
 	return
 }
 
 // parseConfigrue 解析工程中的.hicd文件
 // path 工程路径
-func parseConfigure(path string) (configure *model.HicdConfigure, err error) {
-	configure = new(model.HicdConfigure)
-	fileName := path + "/.hicd"
+func parseConfigure(path string) (configure *model.Config, err error) {
+	configure = new(model.Config)
+	fileName := path + "/.hicd.toml"
 	_, err = os.Open(fileName)
 	if os.IsNotExist(err) {
-		return nil, errors.New(fmt.Sprintf("Open .hicd error[%s]", err))
+		return nil, errors.New(fmt.Sprintf("Open .hicd.toml error[%s]", err))
 	}
 
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Read .hicd error[%s]", err))
+		return nil, errors.New(fmt.Sprintf("Read .hicd.toml error[%s]", err))
 	}
 
 	logrus.WithFields(logrus.Fields{".hcid": string(data)}).Info("gitAgent")
 
-	err = json.Unmarshal(data, configure)
+	err = toml.Unmarshal(data, configure)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +159,7 @@ func parseConfigure(path string) (configure *model.HicdConfigure, err error) {
 }
 
 // sendConfigure 发送配置消息
-func sendConfigure(configure *model.HicdConfigure) error {
+func sendConfigure(configure *model.Config) error {
 
 	hc := model.GitConfigure{
 		Name:      name,
