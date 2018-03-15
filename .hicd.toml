@@ -1,0 +1,6 @@
+title = "HICD Example"
+
+[Build]
+name = "build stage 1"
+kind = "golang"
+dep = true
