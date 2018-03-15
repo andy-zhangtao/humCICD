@@ -13,9 +13,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sirupsen/logrus"
+	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/nsqio/go-nsq"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -34,10 +35,11 @@ func nsqInit() {
 	var err error
 	nsq_endpoint := os.Getenv(model.EnvNsqdEndpoint)
 	if nsq_endpoint == "" {
-		logrus.Error(fmt.Sprintf("[%s] Empty", model.EnvNsqdEndpoint))
+		log.Output(model.GitAgent, logrus.Fields{"Env Empty": model.EnvNsqdEndpoint}, logrus.ErrorLevel).Report()
+		//logrus.Error(fmt.Sprintf("[%s] Empty", model.EnvNsqdEndpoint))
 		os.Exit(-1)
 	}
-	logrus.WithFields(logrus.Fields{"Connect NSQ": nsq_endpoint,}).Info(model.GitAgent)
+	log.Output(model.GitAgent, logrus.Fields{"Connect NSQ": nsq_endpoint}, logrus.DebugLevel)
 	producer, err = nsq.NewProducer(nsq_endpoint, nsq.NewConfig())
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"Connect Nsq Error": err,}).Error(model.GitAgent)
@@ -50,12 +52,12 @@ func nsqInit() {
 		os.Exit(-1)
 	}
 
-	logrus.WithFields(logrus.Fields{"Connect Nsq Succes": producer.String()}).Info(model.GitAgent)
+	log.Output(model.GitAgent, logrus.Fields{"Connect Nsq Succes": producer.String()}, logrus.InfoLevel)
 }
 
 func valid() {
 	if giturl == "" || name == "" || branch == "" {
-		logrus.Error("git value or name value or branch value empty")
+		log.Output(model.GitAgent, logrus.Fields{"Parameter Error": "git value or name value or branch value empty"}, logrus.ErrorLevel)
 		os.Exit(-1)
 	}
 }
@@ -119,7 +121,8 @@ func cloneGit(url, name, branch string) (configure *model.HicdConfigure, err err
 		return
 	}
 
-	logrus.WithFields(logrus.Fields{"configrue": configure}).Info("gitAgent")
+	log.Output(model.GitAgent, logrus.Fields{"msg": configure}, logrus.ErrorLevel).Report()
+	//logrus.WithFields(logrus.Fields{"configrue": configure}).Info("gitAgent")
 	return
 }
 
