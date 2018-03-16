@@ -40,3 +40,8 @@ const (
 	GitImage = "vikings/gitagent:latest"
 	GoImage  = "vikings/goagent:latest"
 )
+
+const (
+	PushEventType      = iota
+	BranchTagEventType
+)

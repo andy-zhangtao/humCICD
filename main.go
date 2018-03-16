@@ -12,11 +12,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/andy-zhangtao/humCICD/git"
+	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/gorilla/mux"
 	"github.com/nsqio/go-nsq"
+	"github.com/sirupsen/logrus"
 )
 
 const _API_ = "/v1"
@@ -51,6 +52,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/_ping", ping).Methods(http.MethodGet)
 	r.HandleFunc(getAPIPath("/tag/trigger"), trigger).Methods(http.MethodPost)
+	r.HandleFunc(getAPIPath("/push/trigger"), push).Methods(http.MethodPost)
 	logrus.Println(http.ListenAndServeTLS(":443", "server.crt", "server.key", r))
 }
 
@@ -64,6 +66,44 @@ func getVersion() string {
 
 func getAPIPath(path string) string {
 	return _API_ + path
+}
+
+func push(w http.ResponseWriter, r *http.Request) {
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Output(ModuleName, logrus.Fields{"Read Body Error": err}, logrus.ErrorLevel).Report()
+		return
+	}
+
+	log.Output(ModuleName, logrus.Fields{"Body": string(data)}, logrus.DebugLevel)
+
+	pushEvent := git.GitHubPush{}
+
+	err = json.Unmarshal(data, &pushEvent)
+	if err != nil {
+		log.Output(ModuleName, logrus.Fields{"Unmarshal Body Error": err}, logrus.ErrorLevel).Report()
+		return
+	}
+
+	push := model.PushEventMsg{
+		GitURL: pushEvent.Repository.Clone_url,
+		Branch: pushEvent.Ref,
+		Name:   pushEvent.Repository.Full_name,
+	}
+
+	msg := model.EventMsg{
+		Kind:  model.PushEventType,
+		Email: pushEvent.Head_commit.Author.Email,
+		Msg:   push,
+	}
+
+	m, err := json.Marshal(msg)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"Marshal Body Error": err}).Error(ModuleName)
+		return
+	}
+
+	makeMsg(model.TAGQUEUE, string(m))
 }
 
 func trigger(w http.ResponseWriter, r *http.Request) {

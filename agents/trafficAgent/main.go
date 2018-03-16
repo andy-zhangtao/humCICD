@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/fsouza/go-dockerclient"
@@ -56,8 +57,8 @@ func (this *TrafficAgent) Run() {
 		logrus.WithFields(logrus.Fields{"WorkChan": "Listen..."}).Info(this.Name)
 		for m := range workerChan {
 			logrus.WithFields(logrus.Fields{"BuildMsg": string(m.Body)}).Info(this.Name)
-			msg := model.TagEventMsg{}
-
+			//msg := model.TagEventMsg{}
+			msg := model.EventMsg{}
 			err = json.Unmarshal(m.Body, &msg)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{"Unmarshal Msg": err, "Origin Byte": string(m.Body)}).Error(this.Name)
@@ -82,16 +83,23 @@ func (this *TrafficAgent) Run() {
 }
 
 // handlerGit 处理GitHub发来的通知消息
-func (this *TrafficAgent) handlerGit(msg model.TagEventMsg) {
-	logrus.WithFields(logrus.Fields{"Create gitAgent": fmt.Sprintf("-g %s -b %s -n %s", msg.GitURL, msg.Branch, msg.Name)}).Info(this.Name)
+func (this *TrafficAgent) handlerGit(msg model.EventMsg) {
 	opt := model.BuildOpts{
 		Client: this.Client,
-		DockerOpt: []model.DockerOpts{model.DockerOpts{
+	}
+	switch msg.Kind {
+	case model.PushEventType:
+		m := msg.Msg.(map[string]interface{})
+		gitURL := m["git_url"].(string)
+		branch := m["branch"].(string)
+		name := m["name"].(string)
+		log.Output(this.Name, logrus.Fields{"Create gitAgent": fmt.Sprintf("-g %s -b %s -n %s", gitURL, branch, name)}, logrus.InfoLevel)
+		opt.DockerOpt = []model.DockerOpts{model.DockerOpts{
 			Img:  "vikings/gitagent:latest",
-			Cmd:  fmt.Sprintf("-g %s -b %s -n %s", msg.GitURL, msg.Branch, msg.Name),
-			Name: "gitagent-" + msg.Name,
+			Cmd:  fmt.Sprintf("-g %s -b %s -n %s", gitURL, branch, name),
+			Name: "gitagent-" + name,
 			Env:  map[string]string{model.EnvNsqdEndpoint: os.Getenv(model.EnvNsqdEndpoint)},
-		}},
+		}}
 	}
 	err := utils.CreateContainer(opt)
 	if err != nil {
@@ -114,8 +122,11 @@ func (this *TrafficAgent) checkRun() error {
 		}
 		logrus.WithFields(logrus.Fields{"Docker Version": env.Get("Version")}).Info(this.Name)
 		summry, err := this.Client.ListImages(docker.ListImagesOptions{
-			All:    false,
-			Filter: fmt.Sprintf("reference=%s", model.GitImage),
+			Filters: map[string][]string{
+				"reference": {model.GitImage},
+			},
+			All: false,
+			//Filter: fmt.Sprintf("reference=%s", model.GitImage),
 		})
 		if err != nil {
 			logrus.WithFields(logrus.Fields{"List Image Error": err}).Error(this.Name)

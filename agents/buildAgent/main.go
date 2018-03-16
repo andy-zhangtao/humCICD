@@ -12,11 +12,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/nsqio/go-nsq"
+	"github.com/sirupsen/logrus"
 )
 
 var workerHome map[string]chan *nsq.Message
@@ -103,8 +103,11 @@ func (this *BuildAgent) checkRun() error {
 	}
 
 	summry, err := this.Client.ListImages(docker.ListImagesOptions{
-		All:    false,
-		Filter: fmt.Sprintf("reference=%s", model.GoImage),
+		Filters: map[string][]string{
+			"reference": {model.GoImage},
+		},
+		All: false,
+		//Filter: fmt.Sprintf("reference=%s", model.GoImage),
 	})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"List Image Error": err}).Error(this.Name)
@@ -138,7 +141,7 @@ func checkDocker() (client *docker.Client, err error) {
 
 func (this *BuildAgent) handleBuild(msg model.GitConfigure) {
 	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Configrue": msg.Configrue}).Info(this.Name)
-	switch msg.Configrue.Kind {
+	switch msg.Configrue.Language {
 	case "golang":
 		this.buildGolang(msg)
 	}

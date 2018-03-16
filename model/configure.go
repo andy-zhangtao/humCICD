@@ -34,7 +34,7 @@ type GitConfigure struct {
 	Name      string `json:"name"`
 	GitUrl    string `json:"git_url"`
 	Branch    string `json:"branch"`
-	Configrue Config `json:"configrue"`
+	Configrue HICD   `json:"configrue"`
 }
 
 type HICD struct {

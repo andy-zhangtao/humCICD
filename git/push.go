@@ -52,30 +52,30 @@ type GitHubPush_repository struct {
 	Labels_url        string                      `json:"labels_url"`
 	Releases_url      string                      `json:"releases_url"`
 	Deployments_url   string                      `json:"deployments_url"`
-	Created_at        int                         `json:"created_at"`
-	Updated_at        string                      `json:"updated_at"`
-	Pushed_at         int                         `json:"pushed_at"`
-	Git_url           string                      `json:"git_url"`
-	Ssh_url           string                      `json:"ssh_url"`
-	Clone_url         string                      `json:"clone_url"`
-	Svn_url           string                      `json:"svn_url"`
-	Size              int                         `json:"size"`
-	Stargazers_count  int                         `json:"stargazers_count"`
-	Watchers_count    int                         `json:"watchers_count"`
-	Has_issues        bool                        `json:"has_issues"`
-	Has_projects      bool                        `json:"has_projects"`
-	Has_downloads     bool                        `json:"has_downloads"`
-	Has_wiki          bool                        `json:"has_wiki"`
-	Has_pages         bool                        `json:"has_pages"`
-	Forks_count       int                         `json:"forks_count"`
-	Archived          bool                        `json:"archived"`
-	Open_issues_count int                         `json:"open_issues_count"`
-	Forks             int                         `json:"forks"`
-	Open_issues       int                         `json:"open_issues"`
-	Watchers          int                         `json:"watchers"`
-	Default_branch    string                      `json:"default_branch"`
-	Stargazers        int                         `json:"stargazers"`
-	Master_branch     string                      `json:"master_branch"`
+	//Created_at        uint32                      `json:"created_at"`
+	Updated_at string `json:"updated_at"`
+	//Pushed_at         uint32                      `json:"pushed_at"`
+	Git_url           string `json:"git_url"`
+	Ssh_url           string `json:"ssh_url"`
+	Clone_url         string `json:"clone_url"`
+	Svn_url           string `json:"svn_url"`
+	Size              int    `json:"size"`
+	Stargazers_count  int    `json:"stargazers_count"`
+	Watchers_count    int    `json:"watchers_count"`
+	Has_issues        bool   `json:"has_issues"`
+	Has_projects      bool   `json:"has_projects"`
+	Has_downloads     bool   `json:"has_downloads"`
+	Has_wiki          bool   `json:"has_wiki"`
+	Has_pages         bool   `json:"has_pages"`
+	Forks_count       int    `json:"forks_count"`
+	Archived          bool   `json:"archived"`
+	Open_issues_count int    `json:"open_issues_count"`
+	Forks             int    `json:"forks"`
+	Open_issues       int    `json:"open_issues"`
+	Watchers          int    `json:"watchers"`
+	Default_branch    string `json:"default_branch"`
+	Stargazers        int    `json:"stargazers"`
+	Master_branch     string `json:"master_branch"`
 }
 type GitHubPush_pusher struct {
 	Name  string `json:"name"`
@@ -89,17 +89,17 @@ type GitHubPush_head_commit_committer struct {
 type GitHubPush_head_commit_removed struct {
 }
 type GitHubPush_head_commit struct {
-	Id        string                            `json:"id"`
-	Tree_id   string                            `json:"tree_id"`
-	Distinct  bool                              `json:"distinct"`
-	Message   string                            `json:"message"`
-	Timestamp string                            `json:"timestamp"`
-	Url       string                            `json:"url"`
-	Author    GitHubPush_head_commit_author     `json:"author"`
-	Committer GitHubPush_head_commit_committer  `json:"committer"`
-	Added     []GitHubPush_head_commit_added    `json:"added"`
-	Removed   []GitHubPush_head_commit_removed  `json:"removed"`
-	Modified  []GitHubPush_head_commit_modified `json:"modified"`
+	Id        string                           `json:"id"`
+	Tree_id   string                           `json:"tree_id"`
+	Distinct  bool                             `json:"distinct"`
+	Message   string                           `json:"message"`
+	Timestamp string                           `json:"timestamp"`
+	Url       string                           `json:"url"`
+	Author    GitHubPush_head_commit_author    `json:"author"`
+	Committer GitHubPush_head_commit_committer `json:"committer"`
+	Added     []string                         `json:"added"`
+	Removed   []string                         `json:"removed"`
+	Modified  []string                         `json:"modified"`
 }
 type GitHubPush_head_commit_modified struct {
 }

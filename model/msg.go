@@ -15,6 +15,18 @@ type TagEventMsg struct {
 	Name   string `json:"name"`
 }
 
+type EventMsg struct {
+	Kind  int         `json:"kind"`
+	Msg   interface{} `json:"msg"`
+	Email string      `json:"email"`
+}
+
+type PushEventMsg struct {
+	GitURL string `json:"git_url"`
+	Branch string `json:"branch"`
+	Name   string `json:"name"`
+}
+
 type OutEventMsg struct {
 	Name   string `json:"name"`
 	Out    string `json:"out"`

@@ -105,12 +105,19 @@ func parseAction(c *cli.Context) error {
 	return sendConfigure(configrue)
 }
 
-func cloneGit(url, name, branch string) (configure *model.Config, err error) {
-	logrus.WithFields(logrus.Fields{"ref": plumbing.ReferenceName("refs/remotes/origin/" + branch)}).Info(model.GitAgent)
+func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
+	ref := ""
+	if strings.HasPrefix(branch, "refs") {
+		ref = branch
+	} else {
+		ref = "refs/remotes/origin/" + branch
+	}
+	log.Output(model.GitAgent, logrus.Fields{"ref": plumbing.ReferenceName(ref)}, logrus.InfoLevel).Report()
+
 	_, err = git.PlainClone("/tmp/"+name, false, &git.CloneOptions{
 		URL:           url,
 		Progress:      os.Stdout,
-		ReferenceName: plumbing.ReferenceName("refs/heads/" + branch),
+		ReferenceName: plumbing.ReferenceName(ref),
 	})
 
 	if err != nil {
@@ -122,8 +129,7 @@ func cloneGit(url, name, branch string) (configure *model.Config, err error) {
 		return
 	}
 
-	log.Output(model.GitAgent, logrus.Fields{"msg": fmt.Sprintf("title:[%s] name:[%s] kind:[%s]", configure.Title, configure.Build.Name, configure.Build.Kind)}, logrus.ErrorLevel).Report()
-	//logrus.WithFields(logrus.Fields{"configrue": configure}).Info("gitAgent")
+	log.Output(model.GitAgent, logrus.Fields{"msg": fmt.Sprintf("language:[%s]", configure.Language)}, logrus.ErrorLevel).Report()
 	return
 }
 
@@ -136,8 +142,8 @@ func parseName(url string) (name string) {
 
 // parseConfigrue 解析工程中的.hicd文件
 // path 工程路径
-func parseConfigure(path string) (configure *model.Config, err error) {
-	configure = new(model.Config)
+func parseConfigure(path string) (configure *model.HICD, err error) {
+	configure = new(model.HICD)
 	fileName := path + "/.hicd.toml"
 	_, err = os.Open(fileName)
 	if os.IsNotExist(err) {
@@ -159,7 +165,7 @@ func parseConfigure(path string) (configure *model.Config, err error) {
 }
 
 // sendConfigure 发送配置消息
-func sendConfigure(configure *model.Config) error {
+func sendConfigure(configure *model.HICD) error {
 
 	hc := model.GitConfigure{
 		Name:      name,
