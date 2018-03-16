@@ -31,8 +31,76 @@ type HiDepend struct {
 }
 
 type GitConfigure struct {
-	Name      string        `json:"name"`
-	GitUrl    string        `json:"git_url"`
-	Branch    string        `json:"branch"`
+	Name      string `json:"name"`
+	GitUrl    string `json:"git_url"`
+	Branch    string `json:"branch"`
 	Configrue Config `json:"configrue"`
+}
+
+type HICD struct {
+	Language    string
+	Dependence  Dependence
+	Env         Env
+	Before      Before
+	Build       Build
+	After       After
+	Integration Integration
+}
+
+type Dependence struct {
+	Need bool
+	Cmd  []string
+}
+
+type Env struct {
+	Skip bool
+	Var  []map[string]string
+}
+
+type Before struct {
+	Skip   bool
+	Script []string
+}
+
+type Build struct {
+	IsMake        bool
+	Ispersistence bool
+	Make          Make
+	Cmd           Cmd
+	Persistence   Persistence
+	Test          Test
+}
+
+type Make struct {
+	Targets []string
+}
+
+type Cmd struct {
+	Cmd []string
+}
+
+type Persistence struct {
+	Path string
+}
+
+type Test struct {
+	Cmd []string
+}
+
+type After struct {
+	Usedocker  bool
+	Dockerfile Dockerfile
+	Var        []map[string]string
+	Script     Script
+}
+
+type Dockerfile struct {
+	Path string
+}
+
+type Script struct {
+	Cmd []string
+}
+type Integration struct {
+	Need bool
 }
