@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
@@ -29,26 +30,33 @@ var name string
 var producer *nsq.Producer
 
 func nsqInit() {
+	var errNum int
 	var err error
 	nsq_endpoint := os.Getenv(model.EnvNsqdEndpoint)
 	if nsq_endpoint == "" {
 		logrus.Error(fmt.Sprintf("[%s] Empty", model.EnvNsqdEndpoint))
 		os.Exit(-1)
 	}
-	logrus.WithFields(logrus.Fields{"Connect NSQ": nsq_endpoint,}).Info(model.BuildAgent)
-	producer, err = nsq.NewProducer(nsq_endpoint, nsq.NewConfig())
-	if err != nil {
-		logrus.WithFields(logrus.Fields{"Connect Nsq Error": err,}).Error(model.BuildAgent)
-		os.Exit(-1)
+	logrus.WithFields(logrus.Fields{"Connect NSQ": nsq_endpoint,}).Info(model.GoAgent)
+	for {
+		producer, _ = nsq.NewProducer(nsq_endpoint, nsq.NewConfig())
+		err = producer.Ping()
+		if err != nil {
+			log.Output(model.GoAgent, "", logrus.Fields{"Ping Nsq Error": err}, logrus.ErrorLevel).Report()
+			errNum ++
+		}
+
+		if err == nil {
+			break
+		}
+
+		if errNum >= 20 {
+			os.Exit(-1)
+		}
+		time.Sleep(time.Second * 5)
 	}
 
-	err = producer.Ping()
-	if err != nil {
-		logrus.WithFields(logrus.Fields{"Ping Nsq Error": err,}).Error(model.BuildAgent)
-		os.Exit(-1)
-	}
-
-	logrus.WithFields(logrus.Fields{"Connect Nsq Succes": producer.String()}).Info(model.BuildAgent)
+	logrus.WithFields(logrus.Fields{"Connect Nsq Succes": producer.String()}).Info(model.GoAgent)
 }
 
 func valid() {
@@ -101,7 +109,7 @@ func buildAction(c *cli.Context) error {
 		return err
 	}
 
-	defer logrus.WithFields(logrus.Fields{path: "Handler End"}).Info(model.BuildAgent)
+	defer logrus.WithFields(logrus.Fields{path: "Handler End"}).Info(model.GoAgent)
 
 	/*执行build*/
 	if out, err := buildProject(path); err != nil {
@@ -140,7 +148,7 @@ func cloneGit(url, name, branch string) (path string, err error) {
 	ref := "refs/remotes/origin/" + branch
 
 	project := strings.Join(strings.Split(name, "/")[1:], "/")
-	log.Output(model.BuildAgent, project, logrus.Fields{"ref": ref, "path": name}, logrus.InfoLevel).Report()
+	log.Output(model.GoAgent, project, logrus.Fields{"ref": ref, "path": name}, logrus.InfoLevel).Report()
 	path = os.Getenv("GOPATH") + "/src/" + name
 	_, err = git.PlainClone(path, false, &git.CloneOptions{
 		URL:           url,

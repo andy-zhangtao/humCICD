@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
@@ -34,6 +35,7 @@ var branch string
 var producer *nsq.Producer
 
 func nsqInit() {
+	var errNum int
 	var err error
 	nsq_endpoint := os.Getenv(model.EnvNsqdEndpoint)
 	if nsq_endpoint == "" {
@@ -42,16 +44,22 @@ func nsqInit() {
 		os.Exit(-1)
 	}
 	log.Output(model.GitAgent, "", logrus.Fields{"Connect NSQ": nsq_endpoint}, logrus.DebugLevel)
-	producer, err = nsq.NewProducer(nsq_endpoint, nsq.NewConfig())
-	if err != nil {
-		log.Output(model.GitAgent, "", logrus.Fields{"Connect Nsq Error": err}, logrus.ErrorLevel).Report()
-		os.Exit(-1)
-	}
+	for {
+		producer, _ = nsq.NewProducer(nsq_endpoint, nsq.NewConfig())
+		err = producer.Ping()
+		if err != nil {
+			log.Output(model.GitAgent, "", logrus.Fields{"Ping Nsq Error": err}, logrus.ErrorLevel).Report()
+			errNum ++
+		}
 
-	err = producer.Ping()
-	if err != nil {
-		log.Output(model.GitAgent, "", logrus.Fields{"Ping Nsq Error": err}, logrus.ErrorLevel).Report()
-		os.Exit(-1)
+		if err == nil {
+			break
+		}
+
+		if errNum >= 20 {
+			os.Exit(-1)
+		}
+		time.Sleep(time.Second * 5)
 	}
 
 	log.Output(model.GitAgent, "", logrus.Fields{"Connect Nsq Succes": producer.String()}, logrus.InfoLevel)

@@ -19,6 +19,7 @@ const (
 	BuildAgent   = "buildAgent"
 	EchoAgent    = "echoAgent"
 	TrafficAgent = "trafficAgent"
+	GoAgent = "goagent"
 	ReportTools  = "report"
 )
 
