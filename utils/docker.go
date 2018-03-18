@@ -45,6 +45,7 @@ func buildContainer(cli *docker.Client, do model.DockerOpts) error {
 		HostConfig: &docker.HostConfig{
 			AutoRemove: false,
 		},
+
 		Context: context.Background(),
 	})
 

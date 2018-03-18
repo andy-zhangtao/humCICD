@@ -11,11 +11,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
-	"github.com/sirupsen/logrus"
+	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/nsqio/go-nsq"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -130,7 +132,15 @@ func buildAction(c *cli.Context) error {
 }
 
 func cloneGit(url, name, branch string) (path string, err error) {
-	logrus.WithFields(logrus.Fields{"ref": plumbing.ReferenceName("refs/heads/" + branch), "path": name}).Info(model.BuildAgent)
+
+	// ref 需要提取project name
+	if strings.HasPrefix(branch, "refs") {
+		branch = strings.Split(branch, "refs/heads/")[1]
+	}
+	ref := "refs/remotes/origin/" + branch
+
+	project := strings.Join(strings.Split(name, "/")[1:], "/")
+	log.Output(model.BuildAgent, project, logrus.Fields{"ref": ref, "path": name}, logrus.InfoLevel).Report()
 	path = os.Getenv("GOPATH") + "/src/" + name
 	_, err = git.PlainClone(path, false, &git.CloneOptions{
 		URL:           url,
@@ -168,7 +178,7 @@ func buildProject(path string) (result []byte, err error) {
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	//
-	//out, err := cmd.CombinedOutput()
+	// out, err := cmd.CombinedOutput()
 	err = cmd.Run()
 	if err != nil {
 		result = []byte(fmt.Sprintf("%s\n%s\n%s", out.String(), stderr.String(), err.Error()))

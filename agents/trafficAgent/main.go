@@ -57,7 +57,7 @@ func (this *TrafficAgent) Run() {
 		logrus.WithFields(logrus.Fields{"WorkChan": "Listen..."}).Info(this.Name)
 		for m := range workerChan {
 			logrus.WithFields(logrus.Fields{"BuildMsg": string(m.Body)}).Info(this.Name)
-			//msg := model.TagEventMsg{}
+			// msg := model.TagEventMsg{}
 			msg := model.EventMsg{}
 			err = json.Unmarshal(m.Body, &msg)
 			if err != nil {
@@ -93,10 +93,11 @@ func (this *TrafficAgent) handlerGit(msg model.EventMsg) {
 		gitURL := m["git_url"].(string)
 		branch := m["branch"].(string)
 		name := m["name"].(string)
-		log.Output(this.Name, logrus.Fields{"Create gitAgent": fmt.Sprintf("-g %s -b %s -n %s", gitURL, branch, name)}, logrus.InfoLevel)
+		log.Output(this.Name, branch, logrus.Fields{"Create gitAgent": fmt.Sprintf("-g %s -b %s", gitURL, branch)}, logrus.InfoLevel)
 		opt.DockerOpt = []model.DockerOpts{model.DockerOpts{
-			Img:  "vikings/gitagent:latest",
-			Cmd:  fmt.Sprintf("-g %s -b %s -n %s", gitURL, branch, name),
+			Img: "vikings/gitagent:latest",
+			// Cmd:  fmt.Sprintf("-g %s -b %s -n %s", gitURL, branch, name),
+			Cmd:  fmt.Sprintf("-g %s -b %s", gitURL, branch),
 			Name: "gitagent-" + name,
 			Env:  map[string]string{model.EnvNsqdEndpoint: os.Getenv(model.EnvNsqdEndpoint)},
 		}}
@@ -126,7 +127,7 @@ func (this *TrafficAgent) checkRun() error {
 				"reference": {model.GitImage},
 			},
 			All: false,
-			//Filter: fmt.Sprintf("reference=%s", model.GitImage),
+			// Filter: fmt.Sprintf("reference=%s", model.GitImage),
 		})
 		if err != nil {
 			logrus.WithFields(logrus.Fields{"List Image Error": err}).Error(this.Name)
@@ -140,7 +141,7 @@ func (this *TrafficAgent) checkRun() error {
 				Repository: model.GitImage,
 				Tag:        "latest",
 			}, docker.AuthConfiguration{})
-			//this.Client.ImagePull(context.Background(), model.GoImage, types.ImagePullOptions{})
+			// this.Client.ImagePull(context.Background(), model.GoImage, types.ImagePullOptions{})
 		} else {
 			logrus.WithFields(logrus.Fields{"Is Has gitAgent": true}).Info(this.Name)
 		}

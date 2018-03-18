@@ -154,6 +154,7 @@ func (this *BuildAgent) buildGolang(msg model.GitConfigure) {
 		DockerOpt: []model.DockerOpts{model.DockerOpts{
 			Img: "vikings/goagent",
 			Cmd: fmt.Sprintf("-g %s -b %s -n %s", msg.GitUrl, msg.Branch, msg.Name),
+			Env: map[string]string{model.EnvNsqdEndpoint: os.Getenv(model.EnvNsqdEndpoint)},
 		}},
 	}
 	err := utils.CreateContainer(opt)

@@ -28,7 +28,8 @@ gitAgent 从Github上面拉取指定工程
 然后解析工程中HICD的配置数据
 */
 var giturl string
-var name string
+// project 工程名称
+var project string
 var branch string
 var producer *nsq.Producer
 
@@ -36,29 +37,29 @@ func nsqInit() {
 	var err error
 	nsq_endpoint := os.Getenv(model.EnvNsqdEndpoint)
 	if nsq_endpoint == "" {
-		log.Output(model.GitAgent, logrus.Fields{"Env Empty": model.EnvNsqdEndpoint}, logrus.ErrorLevel).Report()
-		//logrus.Error(fmt.Sprintf("[%s] Empty", model.EnvNsqdEndpoint))
+		log.Output(model.GitAgent, "", logrus.Fields{"Env Empty": model.EnvNsqdEndpoint}, logrus.ErrorLevel).Report()
+		// logrus.Error(fmt.Sprintf("[%s] Empty", model.EnvNsqdEndpoint))
 		os.Exit(-1)
 	}
-	log.Output(model.GitAgent, logrus.Fields{"Connect NSQ": nsq_endpoint}, logrus.DebugLevel)
+	log.Output(model.GitAgent, "", logrus.Fields{"Connect NSQ": nsq_endpoint}, logrus.DebugLevel)
 	producer, err = nsq.NewProducer(nsq_endpoint, nsq.NewConfig())
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"Connect Nsq Error": err,}).Error(model.GitAgent)
+		log.Output(model.GitAgent, "", logrus.Fields{"Connect Nsq Error": err}, logrus.ErrorLevel).Report()
 		os.Exit(-1)
 	}
 
 	err = producer.Ping()
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"Ping Nsq Error": err,}).Error(model.GitAgent)
+		log.Output(model.GitAgent, "", logrus.Fields{"Ping Nsq Error": err}, logrus.ErrorLevel).Report()
 		os.Exit(-1)
 	}
 
-	log.Output(model.GitAgent, logrus.Fields{"Connect Nsq Succes": producer.String()}, logrus.InfoLevel)
+	log.Output(model.GitAgent, "", logrus.Fields{"Connect Nsq Succes": producer.String()}, logrus.InfoLevel)
 }
 
 func valid() {
-	if giturl == "" || name == "" || branch == "" {
-		log.Output(model.GitAgent, logrus.Fields{"Parameter Error": "git value or name value or branch value empty"}, logrus.ErrorLevel)
+	if giturl == "" || branch == "" {
+		log.Output(model.GitAgent, branch, logrus.Fields{"Parameter Error": "git value or branch value empty"}, logrus.ErrorLevel)
 		os.Exit(-1)
 	}
 }
@@ -80,11 +81,11 @@ func main() {
 			Usage:       "The Git Branch Name",
 			Destination: &branch,
 		},
-		cli.StringFlag{
-			Name:        "name, n",
-			Usage:       "Hicd ID",
-			Destination: &name,
-		},
+		// cli.StringFlag{
+		// 	Name:        "name, n",
+		// 	Usage:       "Hicd ID",
+		// 	Destination: &name,
+		// },
 	}
 
 	app.Action = parseAction
@@ -112,7 +113,7 @@ func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
 	} else {
 		ref = "refs/remotes/origin/" + branch
 	}
-	log.Output(model.GitAgent, logrus.Fields{"ref": plumbing.ReferenceName(ref)}, logrus.InfoLevel).Report()
+	log.Output(model.GitAgent, name, logrus.Fields{"ref": plumbing.ReferenceName(ref), "msg": ref}, logrus.InfoLevel).Report()
 
 	_, err = git.PlainClone("/tmp/"+name, false, &git.CloneOptions{
 		URL:           url,
@@ -129,15 +130,17 @@ func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
 		return
 	}
 
-	log.Output(model.GitAgent, logrus.Fields{"msg": fmt.Sprintf("language:[%s]", configure.Language)}, logrus.ErrorLevel).Report()
+	log.Output(model.GitAgent, name, logrus.Fields{"msg": fmt.Sprintf("language:[%s]", configure.Language)}, logrus.InfoLevel).Report()
 	return
 }
 
-func parseName(url string) (name string) {
+// parseName 从Git URL中提取工程名
+// 例如从https://github.com/andy-zhangtao/humCICD.git中提取出humCICD
+func parseName(url string) (string) {
 	gitName := strings.Split(url, "/")
-	name = strings.Split(gitName[len(gitName)-1], ".")[0]
-	log.Output(model.GitAgent, logrus.Fields{"Process": fmt.Sprintf("GitAgent Will Clone [%s]\n", name)}, logrus.InfoLevel)
-	return
+	project = strings.Split(gitName[len(gitName)-1], ".")[0]
+	log.Output(model.GitAgent, project, logrus.Fields{"Process": fmt.Sprintf("GitAgent Will Clone [%s]\n", project)}, logrus.InfoLevel)
+	return project
 }
 
 // parseConfigrue 解析工程中的.hicd文件
@@ -155,7 +158,7 @@ func parseConfigure(path string) (configure *model.HICD, err error) {
 		return nil, errors.New(fmt.Sprintf("Read .hicd.toml error[%s]", err))
 	}
 
-	logrus.WithFields(logrus.Fields{".hcid": string(data)}).Info("gitAgent")
+	log.Output(model.GitAgent, project, logrus.Fields{".hcid": string(data)}, logrus.InfoLevel)
 
 	err = toml.Unmarshal(data, configure)
 	if err != nil {
@@ -168,7 +171,7 @@ func parseConfigure(path string) (configure *model.HICD, err error) {
 func sendConfigure(configure *model.HICD) error {
 
 	hc := model.GitConfigure{
-		Name:      name,
+		Name:      project,
 		GitUrl:    giturl,
 		Branch:    branch,
 		Configrue: *configure,

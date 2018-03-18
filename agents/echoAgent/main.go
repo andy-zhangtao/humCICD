@@ -10,14 +10,16 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/andy-zhangtao/gogather/tools"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/nsqio/go-nsq"
+	"github.com/sirupsen/logrus"
 )
 
 var workerHome map[string]chan *nsq.Message
 var workerChan chan *nsq.Message
+// projectMsg 保存每个工程所对应的日志
+var projectMsg map[string]string
 
 type EchoAgent struct {
 	Name        string
@@ -73,19 +75,31 @@ func (this *EchoAgent) Run() {
 }
 
 func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
-	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Result": msg.Result}).Info(this.Name)
+	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Project": msg.Project, "Result": msg.Result}).Info(this.Name)
 	logrus.Print(msg.Out)
-	e := tools.Email{
-		Host:     os.Getenv(model.EnvEmailHost),
-		Username: os.Getenv(model.EnvEmailUser),
-		Password: os.Getenv(model.EnvEmailPass),
-		Port:     587,
-		Dest:     []string{os.Getenv(model.EnvEmailDest)},
-		Content:  msg.Out,
-		Header:   fmt.Sprintf("HICD [%s] Report", msg.Name),
+
+	if projectMsg[msg.Project] != "" {
+		projectMsg[msg.Project] += "\n\r" + msg.Out
+	} else {
+		projectMsg[msg.Project] = msg.Out
 	}
-	if err := e.SendEmail(); err != nil {
-		logrus.Error(err)
+
+	switch msg.Result {
+	case model.BuildSuc:
+		break
+	case model.BuildFaild:
+		e := tools.Email{
+			Host:     os.Getenv(model.EnvEmailHost),
+			Username: os.Getenv(model.EnvEmailUser),
+			Password: os.Getenv(model.EnvEmailPass),
+			Port:     587,
+			Dest:     []string{os.Getenv(model.EnvEmailDest)},
+			Content:  projectMsg[msg.Project],
+			Header:   fmt.Sprintf("HICD [%s] Report", msg.Project),
+		}
+		if err := e.SendEmail(); err != nil {
+			logrus.WithFields(logrus.Fields{"Send Email Error": err}).Error(this.Name)
+		}
 	}
 }
 
@@ -96,5 +110,6 @@ func main() {
 		NsqEndpoint: os.Getenv(model.EnvNsqdEndpoint),
 	}
 
+	projectMsg = make(map[string]string)
 	eagent.Run()
 }

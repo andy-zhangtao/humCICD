@@ -5,7 +5,7 @@
 
 package model
 
-//Write by zhangtao<ztao8607@gmail.com> . In 2018/2/24.
+// Write by zhangtao<ztao8607@gmail.com> . In 2018/2/24.
 
 type TagEventMsg struct {
 	Kind   string `json:"kind"`
@@ -28,7 +28,8 @@ type PushEventMsg struct {
 }
 
 type OutEventMsg struct {
-	Name   string `json:"name"`
-	Out    string `json:"out"`
-	Result int    `json:"result"`
+	Name    string `json:"name"`
+	Project string `json:"project"`
+	Out     string `json:"out"`
+	Result  int    `json:"result"`
 }
