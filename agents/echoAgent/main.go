@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/andy-zhangtao/gogather/tools"
 	"github.com/andy-zhangtao/humCICD/model"
@@ -76,10 +77,11 @@ func (this *EchoAgent) Run() {
 
 func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
 	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Project": msg.Project, "Result": msg.Result}).Info(this.Name)
+	msg.Out = strings.Replace(msg.Out, "\n", "<br/>", -1)
 	logrus.Print(msg.Out)
 
 	if projectMsg[msg.Project] != "" {
-		projectMsg[msg.Project] += "\n\r" + msg.Out
+		projectMsg[msg.Project] += msg.Out + "<br/>"
 	} else {
 		projectMsg[msg.Project] = msg.Out
 	}
