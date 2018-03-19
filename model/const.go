@@ -5,21 +5,26 @@
 
 package model
 
-//Write by zhangtao<ztao8607@gmail.com> . In 2018/3/7.
+// Write by zhangtao<ztao8607@gmail.com> . In 2018/3/7.
 const (
 	EnvNsqdEndpoint = "HICD_NSQD_ENDPOINT"
 	EnvEmailHost    = "HICD_EMAIL_HOST"
 	EnvEmailUser    = "HICD_EMAIL_USER"
 	EnvEmailPass    = "HICD_EMAIL_PASS"
 	EnvEmailDest    = "HICD_EMAIL_DEST"
+	EnvMongo        = "HICD_MONGO_ENDPOINT"
+	EnvMongoName    = "HICD_MONGO_NAME"
+	EnvMongoPasswd  = "HICD_MONGO_PASSWD"
+	EnvMongoDB      = "HICD_MONGO_DB"
 )
 
 const (
 	GitAgent     = "gitAgent"
 	BuildAgent   = "buildAgent"
 	EchoAgent    = "echoAgent"
+	DataAgent    = "dataAgent"
+	GoAgent      = "goagent"
 	TrafficAgent = "trafficAgent"
-	GoAgent = "goagent"
 	ReportTools  = "report"
 )
 
@@ -45,4 +50,9 @@ const (
 const (
 	PushEventType      = iota
 	BranchTagEventType
+)
+
+const (
+	DefaultDBName = "hicd"
+	DefaultDBConf = "configure"
 )
