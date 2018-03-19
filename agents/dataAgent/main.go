@@ -7,12 +7,14 @@ package main
 
 import (
 	"encoding/json"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/andy-zhangtao/humCICD/db"
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
+	"github.com/gorilla/mux"
 	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 )
@@ -126,5 +128,31 @@ func main() {
 		NsqEndpoint: os.Getenv(model.EnvNsqdEndpoint),
 	}
 
+	go func() {
+		router := mux.NewRouter()
+		router.Path("/configure/{id:[0-9A-Za-z]+}").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			id := mux.Vars(request)["id"]
+			log.Output(model.DataAgent, "", logrus.Fields{"Find Configure ID":id}, logrus.InfoLevel)
+			config, err := db.FindConfigByID(id)
+			if err != nil{
+				log.Output(model.DataAgent, "", logrus.Fields{"Find Configure Error": err}, logrus.ErrorLevel)
+				return
+			}
+			//
+			// data, err := json.Marshal(&config)
+			// if err != nil{
+			// 	log.Output(model.DataAgent, "", logrus.Fields{"Marshal Error": err}, logrus.ErrorLevel)
+			// 	return
+			// }
+
+			writer.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(writer).Encode(&config)
+		}).Name("GetConfigrue").Methods(http.MethodGet)
+
+		if err := http.ListenAndServe(":8000", router); err != nil {
+			log.Output(model.DataAgent, "", logrus.Fields{"Bind Port Error": err}, logrus.PanicLevel)
+		}
+	}()
 	bagent.Run()
+
 }

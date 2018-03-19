@@ -35,7 +35,7 @@ type HiDepend struct {
 type GitConfigure struct {
 	ID        bson.ObjectId `json:"id" bson:"_id"`
 	Name      string        `json:"name"`
-	GitUrl    string        `json:"git_url"`
+	GitUrl    string        `json:"giturl"`
 	Branch    string        `json:"branch"`
 	Configrue HICD          `json:"configrue"`
 }
@@ -106,4 +106,18 @@ type Script struct {
 }
 type Integration struct {
 	Need bool
+}
+
+func Conver2GitConfigure(config interface{}) (configure GitConfigure, err error) {
+	data, err := bson.Marshal(config)
+	if err != nil {
+		return
+	}
+
+	err = bson.Unmarshal(data, &configure)
+	if err != nil {
+		return
+	}
+
+	return
 }

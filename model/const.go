@@ -16,6 +16,8 @@ const (
 	EnvMongoName    = "HICD_MONGO_NAME"
 	EnvMongoPasswd  = "HICD_MONGO_PASSWD"
 	EnvMongoDB      = "HICD_MONGO_DB"
+	// EnvDataAgent dataAgent Endpoint
+	EnvDataAgent = "HICD_DATA_AGENT"
 )
 
 const (
@@ -33,8 +35,8 @@ const (
 	/*HicdErrTopic 错误信息*/
 	HicdErrTopic = "HICD_Error"
 	/*HicdOutTopic 正常输出信息*/
-	HicdOutTopic   = "HICD_Output"
-	TAGQUEUE       = "HUM_GIT_TAG"
+	HicdOutTopic = "HICD_Output"
+	TAGQUEUE     = "HUM_GIT_TAG"
 	// GitConfIDTopic Git配置信息ID
 	GitConfIDTopic = "HICD_Git_Config_Topic"
 )

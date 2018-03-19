@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -52,7 +51,7 @@ func (this *BuildAgent) Run() {
 
 	cfg := nsq.NewConfig()
 	cfg.MaxInFlight = 1000
-	r, err := nsq.NewConsumer(model.GitAgentTopic, this.Name, cfg)
+	r, err := nsq.NewConsumer(model.GitConfIDTopic, this.Name, cfg)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"Create Consumer Error": err, "Agent": this.Name}).Error(this.Name)
 		return
@@ -62,15 +61,15 @@ func (this *BuildAgent) Run() {
 		logrus.WithFields(logrus.Fields{"WorkChan": "Listen..."}).Info(this.Name)
 		for m := range workerChan {
 			logrus.WithFields(logrus.Fields{"BuildMsg": string(m.Body)}).Info(this.Name)
-			msg := model.GitConfigure{}
+			// msg := model.GitConfigure{}
+			//
+			// err = json.Unmarshal(m.Body, &msg)
+			// if err != nil {
+			// 	logrus.WithFields(logrus.Fields{"Unmarshal Msg": err, "Origin Byte": string(m.Body)}).Error(this.Name)
+			// 	continue
+			// }
 
-			err = json.Unmarshal(m.Body, &msg)
-			if err != nil {
-				logrus.WithFields(logrus.Fields{"Unmarshal Msg": err, "Origin Byte": string(m.Body)}).Error(this.Name)
-				continue
-			}
-
-			go this.handleBuild(msg)
+			go this.handleBuild(string(m.Body))
 
 			m.Finish()
 		}
@@ -107,7 +106,7 @@ func (this *BuildAgent) checkRun() error {
 			"reference": {model.GoImage},
 		},
 		All: false,
-		//Filter: fmt.Sprintf("reference=%s", model.GoImage),
+		// Filter: fmt.Sprintf("reference=%s", model.GoImage),
 	})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"List Image Error": err}).Error(this.Name)
@@ -121,7 +120,7 @@ func (this *BuildAgent) checkRun() error {
 			Repository: model.GoImage,
 			Tag:        "latest",
 		}, docker.AuthConfiguration{})
-		//this.Client.ImagePull(context.Background(), model.GoImage, types.ImagePullOptions{})
+		// this.Client.ImagePull(context.Background(), model.GoImage, types.ImagePullOptions{})
 	} else {
 		logrus.WithFields(logrus.Fields{"Is Has goAgent": true}).Info(this.Name)
 	}
@@ -139,15 +138,21 @@ func checkDocker() (client *docker.Client, err error) {
 	return
 }
 
-func (this *BuildAgent) handleBuild(msg model.GitConfigure) {
-	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Configrue": msg.Configrue}).Info(this.Name)
-	switch msg.Configrue.Language {
+func (this *BuildAgent) handleBuild(msgid string) {
+	configure, err := utils.GetConfigure(msgid)
+	if err != nil{
+		logrus.WithFields(logrus.Fields{"Get Configrue Err": err}).Info(this.Name)
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{"Name": configure.Name, "Configrue": configure.Configrue}).Info(this.Name)
+	switch configure.Configrue.Language {
 	case "golang":
-		this.buildGolang(msg)
+		this.buildGolang(configure)
 	}
 }
 
-func (this *BuildAgent) buildGolang(msg model.GitConfigure) {
+func (this *BuildAgent) buildGolang(msg *model.GitConfigure) {
 	/*1. 构建golang容器*/
 	opt := model.BuildOpts{
 		Client: this.Client,

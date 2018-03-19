@@ -17,16 +17,16 @@ import (
 func SaveConfig(config *model.GitConfigure) (string, error) {
 	config.ID = bson.NewObjectId()
 	err := getConfigureMongo().Insert(&config)
-	return config.ID.String(), err
+	return config.ID.Hex(), err
 }
 
 // FindConfigByID 根据_id返回配置信息
 func FindConfigByID(id string) (configrue interface{}, err error) {
-	err = getConfigureMongo().Find(bson.M{"_id": id}).One(&configrue)
+	err = getConfigureMongo().Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&configrue)
 	return
 }
 
 // DeleteConfigByID 根据_id删除配置信息
 func DeleteConfigByID(id string) error {
-	return getConfigureMongo().Remove(bson.M{"_id": id})
+	return getConfigureMongo().Remove(bson.M{"_id": bson.ObjectIdHex(id)})
 }

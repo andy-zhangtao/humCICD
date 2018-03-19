@@ -6,11 +6,19 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
 	"strings"
+
+	"github.com/andy-zhangtao/humCICD/model"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
-//Write by zhangtao<ztao8607@gmail.com> . In 2018/3/8.
+// Write by zhangtao<ztao8607@gmail.com> . In 2018/3/8.
 
 // parseName 通过git地址解析工程名称
 func ParseName(url string) (name string) {
@@ -30,4 +38,32 @@ func ParsePath(url string) (path string) {
 	}
 
 	return
+}
+
+// GetConfigure 调用API获取配置信息
+func GetConfigure(id string) (*model.GitConfigure, error) {
+	if os.Getenv(model.EnvDataAgent) == "" {
+		return nil, errors.New(fmt.Sprintf("[%s]Empty!", model.EnvDataAgent))
+	}
+
+	logrus.WithFields(logrus.Fields{"API": os.Getenv(model.EnvDataAgent) + "/configure/" + id}).Info("GetConfigure")
+	resp, err := http.Get(os.Getenv(model.EnvDataAgent) + "/configure/" + id)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var config model.GitConfigure
+
+	err = json.Unmarshal(data, &config)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"data": string(data)}).Info("GetConfigure")
+		return nil, err
+	}
+
+	return &config, nil
 }
