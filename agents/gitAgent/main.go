@@ -16,6 +16,7 @@ import (
 
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
+	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/nsqio/go-nsq"
 	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
@@ -138,7 +139,8 @@ func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
 		return
 	}
 
-	log.Output(model.GitAgent, name, logrus.Fields{"msg": fmt.Sprintf("language:[%s]", configure.Language)}, logrus.InfoLevel).Report()
+	project = utils.ParsePath(url)
+	log.Output(model.GitAgent, project, logrus.Fields{"msg": fmt.Sprintf("language:[%s]", configure.Language)}, logrus.InfoLevel).Report()
 	return
 }
 
@@ -146,9 +148,9 @@ func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
 // 例如从https://github.com/andy-zhangtao/humCICD.git中提取出humCICD
 func parseName(url string) (string) {
 	gitName := strings.Split(url, "/")
-	project = strings.Split(gitName[len(gitName)-1], ".")[0]
-	log.Output(model.GitAgent, project, logrus.Fields{"Process": fmt.Sprintf("GitAgent Will Clone [%s]\n", project)}, logrus.InfoLevel)
-	return project
+	name := strings.Split(gitName[len(gitName)-1], ".")[0]
+	log.Output(model.GitAgent, name, logrus.Fields{"Process": fmt.Sprintf("GitAgent Will Clone [%s]\n", name)}, logrus.InfoLevel)
+	return name
 }
 
 // parseConfigrue 解析工程中的.hicd文件

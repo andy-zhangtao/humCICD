@@ -65,10 +65,10 @@ func init() {
 	logrus.WithFields(logrus.Fields{"Mongo Server": b.Version}).Info(ModuleName)
 }
 
-func GetSession() *mgo.Session {
-	return session
+func getSession() *mgo.Session {
+	return session.Clone()
 }
 
-func getCloudMongo() *mgo.Database {
-	return session.Clone().DB(model.DefaultDBConf)
+func getConfigureMongo() *mgo.Collection {
+	return getSession().DB(dbname).C(model.DefaultDBConf)
 }
