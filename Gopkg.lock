@@ -26,7 +26,7 @@
   branch = "master"
   name = "github.com/andy-zhangtao/gogather"
   packages = ["tools"]
-  revision = "3d495b99fca62c24a15e255fb41a88832867ccfd"
+  revision = "f9c02749ba8d77c5abec01840e2f9009101fe580"
 
 [[projects]]
   branch = "master"
@@ -64,7 +64,7 @@
     "pkg/term",
     "pkg/term/windows"
   ]
-  revision = "ae7016427f8cba4e4d8fcb979d6ba313ee2c0702"
+  revision = "0c1006f1abc1af7aa6b9847754370d054dfa6c68"
 
 [[projects]]
   name = "github.com/docker/go-connections"
@@ -136,8 +136,8 @@
 [[projects]]
   name = "github.com/kevinburke/ssh_config"
   packages = ["."]
-  revision = "0ff8514904a8ebfcfb3c32ad73e1f8498a7f81b4"
-  version = "0.3"
+  revision = "9fc7bb800b555d63157c65a904c86a2cc7b4e795"
+  version = "0.4"
 
 [[projects]]
   branch = "master"
@@ -255,7 +255,7 @@
     "ssh/knownhosts",
     "ssh/terminal"
   ]
-  revision = "21652f85b0fdddb6c2b6b77a5beca5c5a908174a"
+  revision = "c3a3ad6d03f7a915c0f7e194b7152974bb73d287"
 
 [[projects]]
   branch = "master"
@@ -264,7 +264,7 @@
     "context",
     "context/ctxhttp"
   ]
-  revision = "e0c57d8f86c17f0724497efcb3bc617e82834821"
+  revision = "6078986fec03a1dcc236c34816c71b0e05018fda"
 
 [[projects]]
   branch = "master"
@@ -273,7 +273,7 @@
     "unix",
     "windows"
   ]
-  revision = "89ac7f292d17a339edab4de8efcba5d8672ff661"
+  revision = "d8e400bc7db4870d786864138af681469693d18c"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -287,6 +287,18 @@
   ]
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
+
+[[projects]]
+  branch = "v2"
+  name = "gopkg.in/mgo.v2"
+  packages = [
+    ".",
+    "bson",
+    "internal/json",
+    "internal/sasl",
+    "internal/scram"
+  ]
+  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
 
 [[projects]]
   name = "gopkg.in/src-d/go-billy.v4"
@@ -356,6 +368,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1dac73a946346d37e19a2c6d86971e9d9936f3fec7376f0ea4e45932a2c55b01"
+  inputs-digest = "e1ca04b64453b5163dc2ac6b9f9fda94c2a5b787cfb624483f3dc202e77cec5c"
   solver-name = "gps-cdcl"
   solver-version = 1
