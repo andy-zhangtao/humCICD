@@ -100,6 +100,7 @@ func main() {
 }
 
 func buildAction(c *cli.Context) error {
+	defer log.Output(model.GoAgent, name, logrus.Fields{"msg": model.DefualtFinishFlag, "name": name}, logrus.InfoLevel).Report()
 	nsqInit()
 	valid()
 
@@ -108,33 +109,13 @@ func buildAction(c *cli.Context) error {
 		return err
 	}
 
-	defer log.Output(model.GoAgent, name, logrus.Fields{"msg": model.DefualtFinishFlag, "name": name}, logrus.ErrorLevel).Report()
-
 	/*执行build*/
 	out, err := buildProject(path)
 	if err != nil {
-
-		// data, err := json.Marshal(model.OutEventMsg{
-		// 	Name:   name,
-		// 	Result: model.BuildFaild,
-		// 	Out:    fmt.Sprintf("ERR:[%s]\nLog:\n%s ", err.Error(), string(out)),
-		// })
-		// if err != nil {
-		// 	return err
-		// }
-		// producer.Publish(model.HicdOutTopic, data)
-		log.Output(model.GoAgent, name, logrus.Fields{"msg": fmt.Sprintf("[%s]\nLog:\n%s ", err.Error(), string(out))}, logrus.ErrorLevel).Report()
+		log.Output(model.GoAgent, name, logrus.Fields{"name": name, "msg": fmt.Sprintf("[%s]\nLog:\n%s ", err.Error(), string(out))}, logrus.ErrorLevel).Report()
 		return err
 	}
-	// data, err := json.Marshal(model.OutEventMsg{
-	// 	Name:   name,
-	// 	Result: model.BuildSuc,
-	// 	Out:    fmt.Sprintf("Log:%s ", string(out)),
-	// })
-	// if err != nil {
-	// 	return err
-	// }
-	// producer.Publish(model.HicdOutTopic, data)
+
 	log.Output(model.GoAgent, name, logrus.Fields{"msg": fmt.Sprintf("Log:%s ", string(out))}, logrus.InfoLevel).Report()
 	return nil
 }
@@ -147,7 +128,6 @@ func cloneGit(url, name, branch string) (path string, err error) {
 	}
 	ref := "refs/remotes/origin/" + branch
 
-	// project := strings.Join(strings.Split(name, "/")[1:], "/")
 	log.Output(model.GoAgent, name, logrus.Fields{"ref": ref, "path": name}, logrus.InfoLevel).Report()
 	path = os.Getenv("GOPATH") + "/src/" + name
 	_, err = git.PlainClone(path, false, &git.CloneOptions{

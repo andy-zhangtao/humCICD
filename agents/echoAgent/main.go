@@ -77,7 +77,7 @@ func (this *EchoAgent) Run() {
 }
 
 func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
-	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Project": msg.Project, "Result": msg.Result, "Out": msg.Out}).Info(this.Name)
+	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Project": msg.Project, "Result": msg.Result}).Info(model.EchoAgent)
 
 	if msg.Project == "" {
 		// 如果Project为空,则是和业务无关联的日志. 不需要发送这些日志
@@ -87,19 +87,15 @@ func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
 	if msg.Out == "" {
 		return
 	}
-	// if msg.Out != "" {
-	// 	msg.Out = strings.Replace(msg.Out, "\n", "<br/>", -1)
-	// 	projectMsg[msg.Project] += msg.Out + "<br/>"
-	// }
+
 	msg.Out = strings.Replace(msg.Out, "\n", "<br/>", -1)
 	logrus.Print(fmt.Sprintf("[%s][%s]", msg.Project, msg.Out))
-	// if projectMsg[msg.Project] != "" {
-	//
-	// } else {
-	// 	projectMsg[msg.Project] = msg.Out
-	// }
 
-	influx.Insert(msg.Project, logrus.Fields{"name": msg.Project}, logrus.Fields{"log": msg.Out})
+	err := influx.Insert(msg.Project, logrus.Fields{"name": msg.Project}, logrus.Fields{"log": msg.Out})
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"Save InfluxDB Error": err, "name": msg.Project}).Error(model.EchoAgent)
+		return
+	}
 
 	if msg.Out == model.DefualtFinishFlag {
 		// 任务结束,需要发送邮件
@@ -163,7 +159,7 @@ func sendEmail(project string) error {
 		content += fmt.Sprintf(" [%d] %s <br/>", l.Timestamp, l.Message)
 	}
 
-	logrus.WithFields(logrus.Fields{"Email":content}).Info(model.EchoAgent)
+	logrus.WithFields(logrus.Fields{"Email": content}).Info(model.EchoAgent)
 
 	e := tools.Email{
 		Host:     os.Getenv(model.EnvEmailHost),
