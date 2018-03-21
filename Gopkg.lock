@@ -255,7 +255,7 @@
     "ssh/knownhosts",
     "ssh/terminal"
   ]
-  revision = "c3a3ad6d03f7a915c0f7e194b7152974bb73d287"
+  revision = "80db560fac1fb3e6ac81dbc7f8ae4c061f5257bd"
 
 [[projects]]
   branch = "master"
@@ -273,7 +273,7 @@
     "unix",
     "windows"
   ]
-  revision = "d8e400bc7db4870d786864138af681469693d18c"
+  revision = "7ceb54c8418b8f9cdf0177b511d5cbb06e9fae39"
 
 [[projects]]
   name = "golang.org/x/text"
