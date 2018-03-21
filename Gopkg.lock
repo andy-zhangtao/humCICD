@@ -122,6 +122,16 @@
   version = "v1.6.1"
 
 [[projects]]
+  name = "github.com/influxdata/influxdb"
+  packages = [
+    "client/v2",
+    "models",
+    "pkg/escape"
+  ]
+  revision = "cdae4ccde4c67c3390d8ae8a1a06bd3b4cdce5c5"
+  version = "v1.5.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/jbenet/go-context"
   packages = ["io"]
@@ -368,6 +378,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e1ca04b64453b5163dc2ac6b9f9fda94c2a5b787cfb624483f3dc202e77cec5c"
+  inputs-digest = "900adad75ffa072b8187364d04ab3a1f230c1efa02892a3a80544295795fb2ec"
   solver-name = "gps-cdcl"
   solver-version = 1
