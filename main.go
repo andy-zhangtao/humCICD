@@ -71,17 +71,17 @@ func getAPIPath(path string) string {
 func push(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Output(ModuleName, logrus.Fields{"Read Body Error": err}, logrus.ErrorLevel).Report()
+		log.Output(ModuleName, model.DefualtEmptyProject, logrus.Fields{"Read Body Error": err}, logrus.ErrorLevel).Report()
 		return
 	}
 
-	log.Output(ModuleName, logrus.Fields{"Body": string(data)}, logrus.DebugLevel)
+	log.Output(ModuleName, model.DefualtEmptyProject, logrus.Fields{"Body": string(data)}, logrus.DebugLevel)
 
 	pushEvent := git.GitHubPush{}
 
 	err = json.Unmarshal(data, &pushEvent)
 	if err != nil {
-		log.Output(ModuleName, logrus.Fields{"Unmarshal Body Error": err}, logrus.ErrorLevel).Report()
+		log.Output(ModuleName, model.DefualtEmptyProject, logrus.Fields{"Unmarshal Body Error": err}, logrus.ErrorLevel).Report()
 		return
 	}
 
