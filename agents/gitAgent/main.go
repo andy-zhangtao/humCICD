@@ -41,9 +41,9 @@ func nsqInit() {
 	nsq_endpoint := os.Getenv(model.EnvNsqdEndpoint)
 	if nsq_endpoint == "" {
 		log.Output(model.GitAgent, "", logrus.Fields{"Env Empty": model.EnvNsqdEndpoint}, logrus.ErrorLevel).Report()
-		// logrus.Error(fmt.Sprintf("[%s] Empty", model.EnvNsqdEndpoint))
 		os.Exit(-1)
 	}
+
 	log.Output(model.GitAgent, "", logrus.Fields{"Connect NSQ": nsq_endpoint}, logrus.DebugLevel)
 	for {
 		producer, _ = nsq.NewProducer(nsq_endpoint, nsq.NewConfig())
@@ -116,13 +116,15 @@ func parseAction(c *cli.Context) error {
 }
 
 func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
+	project = utils.ParsePath(url)
 	ref := ""
 	if strings.HasPrefix(branch, "refs") {
 		ref = branch
 	} else {
 		ref = "refs/remotes/origin/" + branch
 	}
-	log.Output(model.GitAgent, name, logrus.Fields{"ref": plumbing.ReferenceName(ref), "msg": ref}, logrus.InfoLevel).Report()
+
+	log.Output(model.GitAgent, project, logrus.Fields{"ref": plumbing.ReferenceName(ref), "msg": ref}, logrus.InfoLevel).Report()
 
 	_, err = git.PlainClone("/tmp/"+name, false, &git.CloneOptions{
 		URL:           url,
@@ -139,7 +141,7 @@ func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
 		return
 	}
 
-	project = utils.ParsePath(url)
+
 	log.Output(model.GitAgent, project, logrus.Fields{"msg": fmt.Sprintf("language:[%s]", configure.Language)}, logrus.InfoLevel).Report()
 	return
 }

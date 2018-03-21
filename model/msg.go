@@ -28,8 +28,14 @@ type PushEventMsg struct {
 }
 
 type OutEventMsg struct {
-	Name    string `json:"name"`
+	// Name 消息发生源
+	Name string `json:"name"`
+	// Proejct 工程名称
 	Project string `json:"project"`
-	Out     string `json:"out"`
-	Result  int    `json:"result"`
+	// Out 消息内容
+	Out string `json:"out"`
+	// Result 当前消息状态 BuildSuc/BuildFailed
+	Result int `json:"result"`
+	// Time 消息时间戳
+	Time string `json:"time"`
 }

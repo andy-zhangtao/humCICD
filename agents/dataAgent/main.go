@@ -110,7 +110,7 @@ func (this *DataAgent) Run() {
 }
 
 func (this *DataAgent) handleBuild(msg model.GitConfigure) {
-	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Configrue": msg.Configrue}).Info(this.Name)
+	logrus.WithFields(logrus.Fields{"Name": msg.Name, "GitUrl": msg.GitUrl, "Configrue": msg.Configrue}).Info(this.Name)
 	id, err := db.SaveConfig(&msg)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"Name": msg.Name, "Save Mongo Error": err}).Error(this.Name)
@@ -132,9 +132,9 @@ func main() {
 		router := mux.NewRouter()
 		router.Path("/configure/{id:[0-9A-Za-z]+}").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			id := mux.Vars(request)["id"]
-			log.Output(model.DataAgent, "", logrus.Fields{"Find Configure ID":id}, logrus.InfoLevel)
+			log.Output(model.DataAgent, "", logrus.Fields{"Find Configure ID": id}, logrus.InfoLevel)
 			config, err := db.FindConfigByID(id)
-			if err != nil{
+			if err != nil {
 				log.Output(model.DataAgent, "", logrus.Fields{"Find Configure Error": err}, logrus.ErrorLevel)
 				return
 			}

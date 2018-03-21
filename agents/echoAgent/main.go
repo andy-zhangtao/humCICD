@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/andy-zhangtao/gogather/tools"
+	"github.com/andy-zhangtao/humCICD/influx"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
@@ -28,7 +29,7 @@ type EchoAgent struct {
 }
 
 func (this *EchoAgent) HandleMessage(m *nsq.Message) error {
-	logrus.WithFields(logrus.Fields{"HandleMessage": string(m.Body)}).Info(this.Name)
+	// logrus.WithFields(logrus.Fields{"HandleMessage": string(m.Body)}).Info(this.Name)
 	m.DisableAutoResponse()
 	workerChan <- m
 	return nil
@@ -76,33 +77,109 @@ func (this *EchoAgent) Run() {
 }
 
 func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
-	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Project": msg.Project, "Result": msg.Result}).Info(this.Name)
+	logrus.WithFields(logrus.Fields{"Name": msg.Name, "Project": msg.Project, "Result": msg.Result, "Out": msg.Out}).Info(this.Name)
+
+	if msg.Project == "" {
+		// 如果Project为空,则是和业务无关联的日志. 不需要发送这些日志
+		return
+	}
+
+	if msg.Out == "" {
+		return
+	}
+	// if msg.Out != "" {
+	// 	msg.Out = strings.Replace(msg.Out, "\n", "<br/>", -1)
+	// 	projectMsg[msg.Project] += msg.Out + "<br/>"
+	// }
 	msg.Out = strings.Replace(msg.Out, "\n", "<br/>", -1)
-	logrus.Print(msg.Out)
+	logrus.Print(fmt.Sprintf("[%s][%s]", msg.Project, msg.Out))
+	// if projectMsg[msg.Project] != "" {
+	//
+	// } else {
+	// 	projectMsg[msg.Project] = msg.Out
+	// }
 
-	if projectMsg[msg.Project] != "" {
-		projectMsg[msg.Project] += msg.Out + "<br/>"
-	} else {
-		projectMsg[msg.Project] = msg.Out
-	}
+	influx.Insert(msg.Project, logrus.Fields{"name": msg.Project}, logrus.Fields{"log": msg.Out})
 
-	switch msg.Result {
-	case model.BuildSuc:
-		break
-	case model.BuildFaild:
-		e := tools.Email{
-			Host:     os.Getenv(model.EnvEmailHost),
-			Username: os.Getenv(model.EnvEmailUser),
-			Password: os.Getenv(model.EnvEmailPass),
-			Port:     587,
-			Dest:     []string{os.Getenv(model.EnvEmailDest)},
-			Content:  projectMsg[msg.Project],
-			Header:   fmt.Sprintf("HICD [%s] Report", msg.Project),
+	if msg.Out == model.DefualtFinishFlag {
+		// 任务结束,需要发送邮件
+		logrus.WithFields(logrus.Fields{"Query InfluxDB": msg.Project, "End": true}).Info(model.EchoAgent)
+		err := sendEmail(msg.Project)
+		if err != nil {
+			return
 		}
-		if err := e.SendEmail(); err != nil {
-			logrus.WithFields(logrus.Fields{"Send Email Error": err}).Error(this.Name)
+
+		err = influx.Destory(msg.Project)
+		if err != nil {
+			return
 		}
 	}
+	// else {
+	// 	switch msg.Result {
+	// 	case model.BuildSuc:
+	// 		break
+	// 	case model.BuildFaild:
+	// 		// 任务出错,也需要发送邮件
+	// 		logrus.WithFields(logrus.Fields{"Query InfluxDB": msg.Project, "Failed": true}).Info(model.EchoAgent)
+	// 		err := sendEmail(msg.Project)
+	// 		if err != nil {
+	// 			return
+	// 		}
+	// 		err = influx.Destory(msg.Project)
+	// 		if err != nil {
+	// 			return
+	// 		}
+	// 	}
+	// }
+	// switch msg.Result {
+	// case model.BuildSuc:
+	// 	break
+	// case model.BuildFaild:
+	// 	e := tools.Email{
+	// 		Host:     os.Getenv(model.EnvEmailHost),
+	// 		Username: os.Getenv(model.EnvEmailUser),
+	// 		Password: os.Getenv(model.EnvEmailPass),
+	// 		Port:     587,
+	// 		Dest:     []string{os.Getenv(model.EnvEmailDest)},
+	// 		Content:  projectMsg[msg.Project],
+	// 		Header:   fmt.Sprintf("HICD [%s] Report", msg.Name),
+	// 	}
+	// 	if err := e.SendEmail(); err != nil {
+	// 		logrus.WithFields(logrus.Fields{"Send Email Error": err}).Error(this.Name)
+	// 	}
+	// }
+}
+
+func sendEmail(project string) error {
+
+	runLog, err := influx.Query(project)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"Query Log Error": err}).Error(model.EchoAgent)
+		return err
+	}
+
+	content := ""
+	for _, l := range runLog {
+		content += fmt.Sprintf(" [%d] %s <br/>", l.Timestamp, l.Message)
+	}
+
+	logrus.WithFields(logrus.Fields{"Email":content}).Info(model.EchoAgent)
+
+	e := tools.Email{
+		Host:     os.Getenv(model.EnvEmailHost),
+		Username: os.Getenv(model.EnvEmailUser),
+		Password: os.Getenv(model.EnvEmailPass),
+		Port:     587,
+		Dest:     []string{os.Getenv(model.EnvEmailDest)},
+		Content:  content,
+		Header:   fmt.Sprintf("HICD [%s] Report", project),
+	}
+	if err := e.SendEmail(); err != nil {
+		logrus.WithFields(logrus.Fields{"Send Email Error": err}).Error(model.EchoAgent)
+		return err
+	}
+
+	return nil
 }
 
 /*EchoAgent 从NSQ读取所有成功或者失败的信息*/

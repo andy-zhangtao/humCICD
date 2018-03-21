@@ -18,6 +18,8 @@ const (
 	EnvMongoDB      = "HICD_MONGO_DB"
 	// EnvDataAgent dataAgent Endpoint
 	EnvDataAgent = "HICD_DATA_AGENT"
+	// EnvInfluxDB InfluxDB地址
+	EnvInfluxDB = "HICD_INFLUX_DB"
 )
 
 const (
@@ -28,6 +30,7 @@ const (
 	GoAgent      = "goagent"
 	TrafficAgent = "trafficAgent"
 	ReportTools  = "report"
+	InfluxTools  = "Influx"
 )
 
 const (
@@ -57,6 +60,8 @@ const (
 )
 
 const (
-	DefaultDBName = "hicd"
-	DefaultDBConf = "configure"
+	DefaultDBName       = "hicd"
+	DefaultDBConf       = "configure"
+	DefualtEmptyProject = "SYSTEM_LOG"
+	DefualtFinishFlag   = "Handler End"
 )

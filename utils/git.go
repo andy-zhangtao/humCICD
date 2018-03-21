@@ -29,7 +29,7 @@ func ParseName(url string) (name string) {
 }
 
 // ParsePath 通过git地址解析出clone后的路径
-// 例如通过https://github.com/andy-zhangtao/humCICD.git提取 andy-zhangtao/humCICD
+// 例如通过https://github.com/andy-zhangtao/humCICD.git提取 github.com/andy-zhangtao/humCICD
 func ParsePath(url string) (path string) {
 	if strings.HasPrefix(url, "https://") {
 		path = url[len("https://") : len(url)-len(".git")]
