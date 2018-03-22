@@ -58,7 +58,6 @@ func init() {
 func Insert(project string, tags, fields map[string]interface{}) error {
 	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  LogDB,
-		Precision: "s",
 	})
 	if err != nil {
 		log.Output(model.InfluxTools, model.DefualtEmptyProject, logrus.Fields{"Create Batch Points Error": err}, logrus.ErrorLevel)
@@ -80,22 +79,31 @@ func Insert(project string, tags, fields map[string]interface{}) error {
 		}
 	}
 
-	pt, err := client.NewPoint(project, newTags, newField)
+	logrus.WithFields(logrus.Fields{"Create NewPoint": true}).Info(model.InfluxTools)
+	pt, err := client.NewPoint(project, newTags, newField, time.Now())
 	if err != nil {
 		log.Output(model.InfluxTools, model.DefualtEmptyProject, logrus.Fields{"Create Points Error": err}, logrus.ErrorLevel)
 		return err
 	}
 
+	logrus.WithFields(logrus.Fields{"Create Fields": true}).Info(model.InfluxTools)
 	f, err := pt.Fields()
 	if err != nil {
 		log.Output(model.InfluxTools, model.DefualtEmptyProject, logrus.Fields{"Get Points Error": err}, logrus.ErrorLevel)
 		return err
 	}
 
-	log.Output(model.InfluxTools, model.DefualtEmptyProject, logrus.Fields{"Fields":f}, logrus.InfoLevel)
+	log.Output(model.InfluxTools, model.DefualtEmptyProject, logrus.Fields{"Fields": f}, logrus.InfoLevel)
 	bp.AddPoint(pt)
 
-	return influxCli.Write(bp)
+	log.Output(model.InfluxTools, model.DefualtEmptyProject, logrus.Fields{"AddPiont": true}, logrus.InfoLevel)
+	err = influxCli.Write(bp)
+	if err != nil {
+		log.Output(model.InfluxTools, model.DefualtEmptyProject, logrus.Fields{"Insert Points Error": err}, logrus.ErrorLevel)
+		return err
+	}
+
+	return nil
 }
 
 // Query 查询指定工程日志
@@ -117,6 +125,7 @@ func Query(project string) ([]model.RunLog, error) {
 				for _, v := range s.Values {
 					rl := model.RunLog{}
 					for i, vv := range v {
+						logrus.WithFields(logrus.Fields{"i": i, "vv": vv}).Info(model.InfluxTools)
 						if i == 0 {
 							if vvv, ok := vv.(json.Number); ok {
 								rl.Timestamp, _ = vvv.Int64()

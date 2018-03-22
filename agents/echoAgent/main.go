@@ -20,8 +20,6 @@ import (
 
 var workerHome map[string]chan *nsq.Message
 var workerChan chan *nsq.Message
-// projectMsg 保存每个工程所对应的日志
-var projectMsg map[string]string
 
 type EchoAgent struct {
 	Name        string
@@ -149,6 +147,5 @@ func main() {
 		NsqEndpoint: os.Getenv(model.EnvNsqdEndpoint),
 	}
 
-	projectMsg = make(map[string]string)
 	eagent.Run()
 }
