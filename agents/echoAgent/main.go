@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/andy-zhangtao/gogather/tools"
 	"github.com/andy-zhangtao/humCICD/influx"
@@ -118,7 +119,7 @@ func sendEmail(project string) error {
 
 	content := ""
 	for _, l := range runLog {
-		content += fmt.Sprintf(" [%d] %s <br/>", l.Timestamp, l.Message)
+		content += fmt.Sprintf(" [%d] %s <br/>", time.Unix(l.Timestamp, 0), l.Message)
 	}
 
 	logrus.WithFields(logrus.Fields{"Email": content}).Info(model.EchoAgent)
