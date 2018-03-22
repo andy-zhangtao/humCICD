@@ -119,7 +119,7 @@ func sendEmail(project string) error {
 
 	content := ""
 	for _, l := range runLog {
-		content += fmt.Sprintf(" [%d] %s <br/>", time.Unix(l.Timestamp, 0), l.Message)
+		content += fmt.Sprintf(" [%s] %s <br/>", time.Unix(l.Timestamp, 0), l.Message)
 	}
 
 	logrus.WithFields(logrus.Fields{"Email": content}).Info(model.EchoAgent)
