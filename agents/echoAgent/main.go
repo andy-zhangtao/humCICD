@@ -29,7 +29,6 @@ type EchoAgent struct {
 }
 
 func (this *EchoAgent) HandleMessage(m *nsq.Message) error {
-	// logrus.WithFields(logrus.Fields{"HandleMessage": string(m.Body)}).Info(this.Name)
 	m.DisableAutoResponse()
 	workerChan <- m
 	return nil
@@ -50,7 +49,7 @@ func (this *EchoAgent) Run() {
 	go func() {
 		logrus.WithFields(logrus.Fields{"WorkChan": "Listen..."}).Info(this.Name)
 		for m := range workerChan {
-			logrus.WithFields(logrus.Fields{"BuildMsg": string(m.Body)}).Info(this.Name)
+			// logrus.WithFields(logrus.Fields{"BuildMsg": string(m.Body)}).Info(this.Name)
 			msg := model.OutEventMsg{}
 
 			err = json.Unmarshal(m.Body, &msg)
@@ -89,7 +88,6 @@ func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
 	}
 
 	msg.Out = strings.Replace(msg.Out, "\n", "<br/>", -1)
-	logrus.Print(fmt.Sprintf("[%s][%s]", msg.Project, msg.Out))
 
 	err := influx.Insert(msg.Project, logrus.Fields{"name": msg.Project}, logrus.Fields{"log": msg.Out})
 	if err != nil {
@@ -110,40 +108,6 @@ func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
 			return
 		}
 	}
-	// else {
-	// 	switch msg.Result {
-	// 	case model.BuildSuc:
-	// 		break
-	// 	case model.BuildFaild:
-	// 		// 任务出错,也需要发送邮件
-	// 		logrus.WithFields(logrus.Fields{"Query InfluxDB": msg.Project, "Failed": true}).Info(model.EchoAgent)
-	// 		err := sendEmail(msg.Project)
-	// 		if err != nil {
-	// 			return
-	// 		}
-	// 		err = influx.Destory(msg.Project)
-	// 		if err != nil {
-	// 			return
-	// 		}
-	// 	}
-	// }
-	// switch msg.Result {
-	// case model.BuildSuc:
-	// 	break
-	// case model.BuildFaild:
-	// 	e := tools.Email{
-	// 		Host:     os.Getenv(model.EnvEmailHost),
-	// 		Username: os.Getenv(model.EnvEmailUser),
-	// 		Password: os.Getenv(model.EnvEmailPass),
-	// 		Port:     587,
-	// 		Dest:     []string{os.Getenv(model.EnvEmailDest)},
-	// 		Content:  projectMsg[msg.Project],
-	// 		Header:   fmt.Sprintf("HICD [%s] Report", msg.Name),
-	// 	}
-	// 	if err := e.SendEmail(); err != nil {
-	// 		logrus.WithFields(logrus.Fields{"Send Email Error": err}).Error(this.Name)
-	// 	}
-	// }
 }
 
 func sendEmail(project string) error {

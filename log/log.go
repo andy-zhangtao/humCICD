@@ -48,7 +48,7 @@ func Output(modelName, project string, fields logrus.Fields, level logrus.Level)
 
 	}
 
-	return &Log{Name: modelName, Proejct: project}
+	return &Log{Name: modelName, Proejct: project,}
 }
 
 func (l *Log) Report() {

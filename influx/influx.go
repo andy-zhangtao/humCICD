@@ -66,18 +66,33 @@ func Insert(project string, tags, fields map[string]interface{}) error {
 	}
 
 	newTags := make(map[string]string)
+	newField := make(map[string]interface{})
+
 	for k, v := range tags {
 		if vv, ok := v.(string); ok {
 			newTags[k] = vv
 		}
 	}
 
-	pt, err := client.NewPoint(project, newTags, fields)
+	for k, v := range fields {
+		if vv, ok := v.(string); ok {
+			newField[k] = vv
+		}
+	}
+
+	pt, err := client.NewPoint(project, newTags, newField)
 	if err != nil {
 		log.Output(model.InfluxTools, model.DefualtEmptyProject, logrus.Fields{"Create Points Error": err}, logrus.ErrorLevel)
 		return err
 	}
 
+	f, err := pt.Fields()
+	if err != nil {
+		log.Output(model.InfluxTools, model.DefualtEmptyProject, logrus.Fields{"Get Points Error": err}, logrus.ErrorLevel)
+		return err
+	}
+
+	log.Output(model.InfluxTools, model.DefualtEmptyProject, logrus.Fields{"Fields":f}, logrus.InfoLevel)
 	bp.AddPoint(pt)
 
 	return influxCli.Write(bp)

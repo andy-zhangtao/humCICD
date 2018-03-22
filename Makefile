@@ -43,7 +43,8 @@ release-hicd: *.go *.md
 
 release: release-client
 
-all: build release release-hicd
+#all: build release release-hicd
+all: build
 	@echo "Build HICD"
 	mv $(name) bin
 
