@@ -93,11 +93,12 @@ func (this *TrafficAgent) handlerGit(msg model.EventMsg) {
 		gitURL := m["git_url"].(string)
 		branch := m["branch"].(string)
 		name := m["name"].(string)
+		email := m["email"].(string)
 		log.Output(this.Name, branch, logrus.Fields{"Create gitAgent": fmt.Sprintf("-g %s -b %s", gitURL, branch)}, logrus.InfoLevel)
 		opt.DockerOpt = []model.DockerOpts{model.DockerOpts{
 			Img: "vikings/gitagent:latest",
 			// Cmd:  fmt.Sprintf("-g %s -b %s -n %s", gitURL, branch, name),
-			Cmd:  fmt.Sprintf("-g %s -b %s", gitURL, branch),
+			Cmd:  fmt.Sprintf("-g %s -b %s -e %s", gitURL, branch, email),
 			Name: "gitagent-" + name,
 			Env:  map[string]string{model.EnvNsqdEndpoint: os.Getenv(model.EnvNsqdEndpoint)},
 		}}

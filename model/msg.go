@@ -25,6 +25,7 @@ type PushEventMsg struct {
 	GitURL string `json:"git_url"`
 	Branch string `json:"branch"`
 	Name   string `json:"name"`
+	Email  string `json:"email" bson:"email"`
 }
 
 type OutEventMsg struct {

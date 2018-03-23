@@ -89,11 +89,12 @@ func push(w http.ResponseWriter, r *http.Request) {
 		GitURL: pushEvent.Repository.Clone_url,
 		Branch: pushEvent.Ref,
 		Name:   pushEvent.Repository.Full_name,
+		Email:  pushEvent.Pusher.Email,
 	}
 
 	msg := model.EventMsg{
 		Kind:  model.PushEventType,
-		Email: pushEvent.Head_commit.Author.Email,
+		Email: pushEvent.Pusher.Email,
 		Msg:   push,
 	}
 

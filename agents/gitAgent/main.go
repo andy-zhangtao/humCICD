@@ -33,6 +33,7 @@ var giturl string
 // project 工程名称
 var project string
 var branch string
+var email string
 var producer *nsq.Producer
 
 func nsqInit() {
@@ -90,11 +91,11 @@ func main() {
 			Usage:       "The Git Branch Name",
 			Destination: &branch,
 		},
-		// cli.StringFlag{
-		// 	Name:        "name, n",
-		// 	Usage:       "Hicd ID",
-		// 	Destination: &name,
-		// },
+		cli.StringFlag{
+			Name:        "email, e",
+			Usage:       "Pusher Email",
+			Destination: &email,
+		},
 	}
 
 	app.Action = parseAction
@@ -141,7 +142,6 @@ func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
 		return
 	}
 
-
 	log.Output(model.GitAgent, project, logrus.Fields{"msg": fmt.Sprintf("language:[%s]", configure.Language)}, logrus.InfoLevel).Report()
 	return
 }
@@ -186,6 +186,7 @@ func sendConfigure(configure *model.HICD) error {
 		Name:      project,
 		GitUrl:    giturl,
 		Branch:    branch,
+		Email:     email,
 		Configrue: *configure,
 	}
 
@@ -194,5 +195,6 @@ func sendConfigure(configure *model.HICD) error {
 		return err
 	}
 
+	log.Output(model.GitAgent, model.DefualtEmptyProject, logrus.Fields{"configure": hc}, logrus.InfoLevel)
 	return producer.Publish(model.GitAgentTopic, data)
 }

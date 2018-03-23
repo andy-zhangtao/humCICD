@@ -30,3 +30,9 @@ func FindConfigByID(id string) (configrue interface{}, err error) {
 func DeleteConfigByID(id string) error {
 	return getConfigureMongo().Remove(bson.M{"_id": bson.ObjectIdHex(id)})
 }
+
+// FindConfigByName 根据名称返回配置信息
+func FindConfigByName(name string) (configrue interface{}, err error) {
+	err = getConfigureMongo().Find(bson.M{"name": bson.ObjectIdHex(name)}).One(&configrue)
+	return
+}
