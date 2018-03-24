@@ -41,29 +41,66 @@ func ParsePath(url string) (path string) {
 }
 
 // GetConfigure 调用API获取配置信息
-func GetConfigure(id string) (*model.GitConfigure, error) {
+func GetConfigure(idOrName string) (*model.GitConfigure, error) {
 	if os.Getenv(model.EnvDataAgent) == "" {
 		return nil, errors.New(fmt.Sprintf("[%s]Empty!", model.EnvDataAgent))
 	}
 
+	resp, err := getConfigureByID(idOrName)
+	if err != nil {
+		return nil, err
+	}
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		var config model.GitConfigure
+
+		err = json.Unmarshal(data, &config)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{"data": string(data)}).Info("GetConfigure")
+			return nil, err
+		}
+
+		return &config, nil
+	case http.StatusNotFound:
+		// 	通过ID查询失败
+		resp, err = getConfigureByName(idOrName)
+		if err != nil {
+			return nil, err
+		}
+
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		var config model.GitConfigure
+
+		err = json.Unmarshal(data, &config)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{"data": string(data)}).Info("GetConfigure")
+			return nil, err
+		}
+
+		return &config, nil
+	}
+
+	return nil, errors.New("API Invoke Error")
+}
+
+func getConfigureByID(id string) (resp *http.Response, err error) {
 	logrus.WithFields(logrus.Fields{"API": os.Getenv(model.EnvDataAgent) + "/configure/" + id}).Info("GetConfigure")
-	resp, err := http.Get(os.Getenv(model.EnvDataAgent) + "/configure/" + id)
-	if err != nil {
-		return nil, err
-	}
+	resp, err = http.Get(os.Getenv(model.EnvDataAgent) + "/configure/" + id)
+	return
+}
 
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var config model.GitConfigure
-
-	err = json.Unmarshal(data, &config)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{"data": string(data)}).Info("GetConfigure")
-		return nil, err
-	}
-
-	return &config, nil
+func getConfigureByName(name string) (resp *http.Response, err error) {
+	logrus.WithFields(logrus.Fields{"API": os.Getenv(model.EnvDataAgent) + "/configure/name"}).Info("GetConfigure")
+	resp, err = http.Post(os.Getenv(model.EnvDataAgent)+"/configure/name", "", strings.NewReader(name))
+	return
 }

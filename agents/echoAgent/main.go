@@ -15,6 +15,7 @@ import (
 	"github.com/andy-zhangtao/gogather/tools"
 	"github.com/andy-zhangtao/humCICD/influx"
 	"github.com/andy-zhangtao/humCICD/model"
+	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 )
@@ -99,11 +100,13 @@ func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
 		logrus.WithFields(logrus.Fields{"Query InfluxDB": msg.Project, "End": true}).Info(model.EchoAgent)
 		err := sendEmail(msg.Project)
 		if err != nil {
+			logrus.WithFields(logrus.Fields{"Send Email Error": err}).Info(model.EchoAgent)
 			return
 		}
 
 		err = influx.Destory(msg.Project)
 		if err != nil {
+			logrus.WithFields(logrus.Fields{"Destory Influxdb Error": err}).Info(model.EchoAgent)
 			return
 		}
 	}
@@ -122,16 +125,21 @@ func sendEmail(project string) error {
 		content += fmt.Sprintf(" [%s] %s <br/>", time.Unix(l.Timestamp, 0), l.Message)
 	}
 
-	logrus.WithFields(logrus.Fields{"Email": content}).Info(model.EchoAgent)
+	congiure, err := utils.GetConfigure(project)
+	if err != nil {
+		return err
+	}
 
+	logrus.WithFields(logrus.Fields{"Content": content, "Email": congiure.Email}).Info(model.EchoAgent)
 	e := tools.Email{
 		Host:     os.Getenv(model.EnvEmailHost),
 		Username: os.Getenv(model.EnvEmailUser),
 		Password: os.Getenv(model.EnvEmailPass),
 		Port:     587,
-		Dest:     []string{os.Getenv(model.EnvEmailDest)},
-		Content:  content,
-		Header:   fmt.Sprintf("HICD [%s] Report", project),
+		// Dest:     []string{os.Getenv(model.EnvEmailDest)},
+		Dest:    []string{congiure.Email},
+		Content: content,
+		Header:  fmt.Sprintf("HICD [%s] Report", project),
 	}
 	if err := e.SendEmail(); err != nil {
 		logrus.WithFields(logrus.Fields{"Send Email Error": err}).Error(model.EchoAgent)
