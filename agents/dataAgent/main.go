@@ -164,6 +164,18 @@ func main() {
 			json.NewEncoder(writer).Encode(&config)
 		}).Name("GetConfigrue").Methods(http.MethodPost)
 
+		// 通过id删除git configure数据
+		router.Path("/configure/{id:[0-9A-Za-z]+}").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			id := mux.Vars(request)["id"]
+			log.Output(model.DataAgent, "", logrus.Fields{"Find Configure ID": id}, logrus.InfoLevel)
+			err := db.DeleteConfigByID(id)
+			if err != nil {
+				log.Output(model.DataAgent, "", logrus.Fields{"Find Configure Error": err}, logrus.ErrorLevel)
+				return
+			}
+
+		}).Name("GetConfigrue").Methods(http.MethodDelete)
+
 		if err := http.ListenAndServe(":8000", router); err != nil {
 			log.Output(model.DataAgent, "", logrus.Fields{"Bind Port Error": err}, logrus.PanicLevel)
 		}
