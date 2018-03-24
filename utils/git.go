@@ -93,6 +93,18 @@ func GetConfigure(idOrName string) (*model.GitConfigure, error) {
 	return nil, errors.New("API Invoke Error")
 }
 
+func DeleteConfigure(id string) (resp *http.Response, err error) {
+	logrus.WithFields(logrus.Fields{"API": os.Getenv(model.EnvDataAgent) + "/configure/" + id}).Info("DeleteConfigure")
+	client := &http.Client{}
+	req, err1 := http.NewRequest("DELETE", os.Getenv(model.EnvDataAgent) + "/configure/" + id, nil)
+	if err1 != nil{
+		err = err1
+		return
+	}
+	resp, err = client.Do(req)
+	return
+}
+
 func getConfigureByID(id string) (resp *http.Response, err error) {
 	logrus.WithFields(logrus.Fields{"API": os.Getenv(model.EnvDataAgent) + "/configure/" + id}).Info("GetConfigure")
 	resp, err = http.Get(os.Getenv(model.EnvDataAgent) + "/configure/" + id)

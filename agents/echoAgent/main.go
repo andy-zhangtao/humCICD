@@ -98,7 +98,7 @@ func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
 	if msg.Out == model.DefualtFinishFlag {
 		// 任务结束,需要发送邮件
 		logrus.WithFields(logrus.Fields{"Query InfluxDB": msg.Project, "End": true}).Info(model.EchoAgent)
-		err := sendEmail(msg.Project)
+		id, err := sendEmail(msg.Project)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{"Send Email Error": err}).Info(model.EchoAgent)
 			return
@@ -109,15 +109,21 @@ func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
 			logrus.WithFields(logrus.Fields{"Destory Influxdb Error": err}).Info(model.EchoAgent)
 			return
 		}
+
+		_,err = utils.DeleteConfigure(id)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{"Destory Configure Error": err}).Info(model.EchoAgent)
+			return
+		}
 	}
 }
 
-func sendEmail(project string) error {
-
+func sendEmail(project string) (string,error) {
+	configureID := ""
 	runLog, err := influx.Query(project)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"Query Log Error": err}).Error(model.EchoAgent)
-		return err
+		return configureID, err
 	}
 
 	content := ""
@@ -127,9 +133,10 @@ func sendEmail(project string) error {
 
 	congiure, err := utils.GetConfigure(project)
 	if err != nil {
-		return err
+		return configureID, err
 	}
 
+	configureID = congiure.ID.Hex()
 	logrus.WithFields(logrus.Fields{"Content": content, "Email": congiure.Email}).Info(model.EchoAgent)
 	e := tools.Email{
 		Host:     os.Getenv(model.EnvEmailHost),
@@ -143,10 +150,10 @@ func sendEmail(project string) error {
 	}
 	if err := e.SendEmail(); err != nil {
 		logrus.WithFields(logrus.Fields{"Send Email Error": err}).Error(model.EchoAgent)
-		return err
+		return configureID, err
 	}
 
-	return nil
+	return configureID, nil
 }
 
 /*EchoAgent 从NSQ读取所有成功或者失败的信息*/
