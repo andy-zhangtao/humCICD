@@ -7,6 +7,7 @@ package main
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -130,6 +131,7 @@ func main() {
 
 	go func() {
 		router := mux.NewRouter()
+		// 通过id查询git configure数据
 		router.Path("/configure/{id:[0-9A-Za-z]+}").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			id := mux.Vars(request)["id"]
 			log.Output(model.DataAgent, "", logrus.Fields{"Find Configure ID": id}, logrus.InfoLevel)
@@ -138,16 +140,29 @@ func main() {
 				log.Output(model.DataAgent, "", logrus.Fields{"Find Configure Error": err}, logrus.ErrorLevel)
 				return
 			}
-			//
-			// data, err := json.Marshal(&config)
-			// if err != nil{
-			// 	log.Output(model.DataAgent, "", logrus.Fields{"Marshal Error": err}, logrus.ErrorLevel)
-			// 	return
-			// }
 
 			writer.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(writer).Encode(&config)
 		}).Name("GetConfigrue").Methods(http.MethodGet)
+
+		// 通过name查询git configure数据
+		router.Path("/configure/name").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			data, err := ioutil.ReadAll(request.Body)
+			if err != nil{
+				log.Output(model.DataAgent, "", logrus.Fields{"Read Data Error": err}, logrus.ErrorLevel)
+				return
+			}
+
+			log.Output(model.DataAgent, "", logrus.Fields{"Find Configure Name": string(data)}, logrus.InfoLevel)
+			config, err := db.FindConfigByName(string(data))
+			if err != nil {
+				log.Output(model.DataAgent, "", logrus.Fields{"Find Configure Error": err}, logrus.ErrorLevel)
+				return
+			}
+
+			writer.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(writer).Encode(&config)
+		}).Name("GetConfigrue").Methods(http.MethodPost)
 
 		if err := http.ListenAndServe(":8000", router); err != nil {
 			log.Output(model.DataAgent, "", logrus.Fields{"Bind Port Error": err}, logrus.PanicLevel)
