@@ -33,7 +33,7 @@ type HiDepend struct {
 }
 
 type GitConfigure struct {
-	ID        bson.ObjectId `json:"id" bson:"_id"`
+	ID        bson.ObjectId `json:"_id" bson:"_id"`
 	Name      string        `json:"name"`
 	GitUrl    string        `json:"giturl"`
 	Branch    string        `json:"branch"`
