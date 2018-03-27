@@ -110,7 +110,7 @@ func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
 			return
 		}
 
-		_,err = utils.DeleteConfigure(id)
+		_, err = utils.DeleteConfigure(id)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{"Destory Configure Error": err}).Info(model.EchoAgent)
 			return
@@ -118,7 +118,7 @@ func (this *EchoAgent) handlerOutput(msg model.OutEventMsg) {
 	}
 }
 
-func sendEmail(project string) (string,error) {
+func sendEmail(project string) (string, error) {
 	configureID := ""
 	runLog, err := influx.Query(project)
 	if err != nil {
@@ -137,7 +137,7 @@ func sendEmail(project string) (string,error) {
 	}
 
 	configureID = congiure.ID.Hex()
-	logrus.WithFields(logrus.Fields{"Content": content, "Email": congiure.Email}).Info(model.EchoAgent)
+	logrus.WithFields(logrus.Fields{"congiure": congiure, "Content": content, "Email": congiure.Email}).Info(model.EchoAgent)
 	e := tools.Email{
 		Host:     os.Getenv(model.EnvEmailHost),
 		Username: os.Getenv(model.EnvEmailUser),

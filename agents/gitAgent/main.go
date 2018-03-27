@@ -139,6 +139,9 @@ func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
 
 	configure, err = parseConfigure("/tmp/" + name)
 	if err != nil {
+		log.Output(model.GitAgent, project, logrus.Fields{"msg": err.Error()}, logrus.ErrorLevel).Report()
+		// 如果读取.hicd.toml失败,此时应该退出
+		log.Output(model.GitAgent, project, logrus.Fields{"msg": model.DefualtFinishFlag}, logrus.ErrorLevel).Report()
 		return
 	}
 
