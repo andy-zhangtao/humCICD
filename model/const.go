@@ -66,5 +66,6 @@ const (
 	DefualtFinishFlag   = "Handler End"
 	DependenceModule    = "Dependence"
 	BeforeModule        = "Before"
+	BuildModule         = "Build"
 	WorkerModule        = "Hicd-Worker"
 )

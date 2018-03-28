@@ -6,10 +6,8 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -128,14 +126,7 @@ func buildAction(c *cli.Context) error {
 	}
 
 	ci.Do()
-	// /*执行build*/
-	// out, err := buildProject(path)
-	// if err != nil {
-	// 	log.Output(model.GoAgent, name, logrus.Fields{"name": name, "msg": fmt.Sprintf("[%s]\nLog:\n%s ", err.Error(), string(out))}, logrus.ErrorLevel).Report()
-	// 	return err
-	// }
 
-	// log.Output(model.GoAgent, name, logrus.Fields{"msg": fmt.Sprintf("Log:%s ", string(out))}, logrus.InfoLevel).Report()
 	return nil
 }
 
@@ -158,41 +149,6 @@ func cloneGit(url, name, branch string) (path string, err error) {
 	if err != nil {
 		return
 	}
-
-	return
-}
-
-func buildProject(path string) (result []byte, err error) {
-	var out, stderr bytes.Buffer
-	var cmd *exec.Cmd
-	err = os.Chdir(path)
-	if err != nil {
-		result = []byte(fmt.Sprintf("%s \n %s", out.String(), err.Error()))
-		return
-	}
-
-	_, err = os.Stat(path + "/Makefile")
-	if err != nil {
-		if os.IsNotExist(err) {
-			logrus.Println("Not Has Makefile")
-			cmd = exec.Command("go", []string{"build", "-v"}...)
-		}
-	} else {
-		logrus.Println("Has Makefile")
-		cmd = exec.Command("make", "all")
-	}
-
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	//
-	// out, err := cmd.CombinedOutput()
-	err = cmd.Run()
-	if err != nil {
-		result = []byte(fmt.Sprintf("%s\n%s\n%s", out.String(), stderr.String(), err.Error()))
-		return
-	}
-
-	result = []byte(fmt.Sprintf("Output:\n%s \nErr:\n%s \n", out.String(), stderr.String()))
 
 	return
 }

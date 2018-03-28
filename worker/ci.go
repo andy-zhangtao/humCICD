@@ -44,6 +44,14 @@ func (c *CIWorker) Do() {
 	}
 
 	log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s", "Before", beforeResult)}, logrus.InfoLevel).Report()
+
+	buildResult, err := c.Build()
+	if err != nil {
+		log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s %s", "Build", buildResult, err.Error())}, logrus.ErrorLevel).Report()
+		return
+	}
+
+	log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s", "Build", buildResult)}, logrus.InfoLevel).Report()
 }
 
 // Dependence 执行构建前的依赖管理
@@ -66,6 +74,8 @@ func (c *CIWorker) Dependence() (string, error) {
 	return utils.CmdRun(c.Hicd.Dependence.Cmd)
 }
 
+// Before 执行构建前的准备阶段
+// 当skip=false执行此阶段脚本
 func (c *CIWorker) Before() (string, error) {
 	log.Output(model.BeforeModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("Work Dir %s", c.WorkDir)}, logrus.InfoLevel).Report()
 
@@ -80,4 +90,58 @@ func (c *CIWorker) Before() (string, error) {
 	}
 
 	return utils.CmdRun(c.Hicd.Before.Script)
+}
+
+// Build 触发构建
+func (c *CIWorker) Build() (string, error) {
+	log.Output(model.BuildModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("Work Dir %s", c.WorkDir)}, logrus.InfoLevel).Report()
+
+	os.Chdir(c.WorkDir)
+
+	return buildProject(c.Name, c.WorkDir, c.Hicd)
+}
+
+// buildProject 构建工程
+func buildProject(name, path string, conf model.HICD) (string, error) {
+
+	hasMakefile := false
+
+	_, err := os.Stat(path + "/Makefile")
+	if err != nil {
+		if os.IsNotExist(err) {
+			hasMakefile = false
+		}
+	} else {
+		hasMakefile = true
+	}
+
+	if conf.Build.IsMake {
+		log.Output(model.BuildModule, name, logrus.Fields{"msg": "Use Makefile."}, logrus.InfoLevel).Report()
+		//	使用makefile
+		if hasMakefile {
+			var makeCommand []string
+			makeCommand = append(makeCommand, "make")
+			log.Output(model.BuildModule, name, logrus.Fields{"msg": "Found Makefile"}, logrus.InfoLevel).Report()
+			if len(conf.Build.Make.Targets) == 0 {
+				return utils.CmdRun(makeCommand)
+			}
+
+			makeCommand = append(makeCommand, conf.Build.Make.Targets...)
+			return utils.CmdRun(makeCommand)
+		}
+
+		log.Output(model.BuildModule, name, logrus.Fields{"msg": "Not Found Makefile. Use Buld Command"}, logrus.InfoLevel).Report()
+
+		if len(conf.Build.Cmd.Cmd) == 0 {
+			return utils.CmdRun([]string{"go", "build", "-v"})
+		}
+		return utils.CmdRun(conf.Build.Cmd.Cmd)
+	}
+
+	log.Output(model.BuildModule, name, logrus.Fields{"msg": "Don't Use Makefile. Use Buld Command"}, logrus.InfoLevel).Report()
+
+	if len(conf.Build.Cmd.Cmd) == 0 {
+		return utils.CmdRun([]string{"go", "build", "-v"})
+	}
+	return utils.CmdRun(conf.Build.Cmd.Cmd)
 }
