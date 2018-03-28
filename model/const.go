@@ -69,5 +69,6 @@ const (
 	BuildModule         = "Build"
 	TestModule          = "Test"
 	ExceptionModule     = "Exception"
+	AfterModule         = "After"
 	WorkerModule        = "Hicd-Worker"
 )

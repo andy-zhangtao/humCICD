@@ -104,6 +104,7 @@ type After struct {
 }
 
 type Dockerfile struct {
+	Name string
 	Path string
 }
 

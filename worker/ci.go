@@ -8,6 +8,7 @@ package worker
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
@@ -52,6 +53,14 @@ func (c *CIWorker) Do() {
 	}
 
 	log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s", "Build", buildResult)}, logrus.InfoLevel).Report()
+
+	afterResult, err := c.After()
+	if err != nil {
+		log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s %s", "After", afterResult, err.Error())}, logrus.ErrorLevel).Report()
+		return
+	}
+
+	log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s", "After", afterResult)}, logrus.InfoLevel).Report()
 }
 
 // Dependence 执行构建前的依赖管理
@@ -188,4 +197,46 @@ func buildException(name, path string, conf model.HICD) (string, error) {
 	}
 
 	return "Excepiton Run Away", nil
+}
+
+// After 构建结束后的触发动作
+func (c *CIWorker) After() (string, error) {
+	os.Chdir(c.WorkDir)
+
+	if c.Hicd.After.Usedocker {
+
+		utils.CmdRun([]string{"apk", "add", "--update", "docker"})
+		docker := "Dockerfile"
+		var env []string
+		if c.Hicd.After.Dockerfile.Path != "" {
+			docker = c.Hicd.After.Dockerfile.Path
+		}
+
+		if len(c.Hicd.After.Var) > 0 {
+			for _, v := range c.Hicd.After.Var {
+				for key, value := range v {
+					env = append(env, "--build-arg")
+					env = append(env, fmt.Sprintf("%s=%s", key, value))
+				}
+			}
+		}
+
+		path := "."
+		if strings.Contains(docker, "/") {
+			//	dockerfile不在当前目录,需要解析目标目录
+			ts := strings.Split(docker, "/")
+			path = strings.Join(ts[:len(ts)-1], "/")
+
+		}
+
+		buildCommand := []string{"docker", "build", "-t", c.Hicd.After.Dockerfile.Name}
+		buildCommand = append(buildCommand, env...)
+		buildCommand = append(buildCommand, "-f", docker, path)
+
+		log.Output(model.AfterModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%v", buildCommand)}, logrus.InfoLevel).Report()
+
+		return utils.CmdRun(buildCommand)
+	}
+
+	return "Skip After Stage", nil
 }
