@@ -65,4 +65,6 @@ const (
 	DefualtEmptyProject = "SYSTEM_LOG"
 	DefualtFinishFlag   = "Handler End"
 	DependenceModule    = "Dependence"
+	BeforeModule        = "Before"
+	WorkerModule        = "Hicd-Worker"
 )

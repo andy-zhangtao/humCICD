@@ -31,11 +31,19 @@ type CIWorker struct {
 func (c *CIWorker) Do() {
 	dependenceResult, err := c.Dependence()
 	if err != nil {
-		log.Output(model.DependenceModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s %s %s", "Dependence", dependenceResult, err.Error())}, logrus.ErrorLevel).Report()
+		log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s %s", "Dependence", dependenceResult, err.Error())}, logrus.ErrorLevel).Report()
 		return
 	}
 
-	log.Output(model.DependenceModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s %s", "Dependence", dependenceResult)}, logrus.InfoLevel).Report()
+	log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s", "Dependence", dependenceResult)}, logrus.InfoLevel).Report()
+
+	beforeResult, err := c.Before()
+	if err != nil {
+		log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s %s", "Before", beforeResult, err.Error())}, logrus.ErrorLevel).Report()
+		return
+	}
+
+	log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s", "Before", beforeResult)}, logrus.InfoLevel).Report()
 }
 
 // Dependence 执行构建前的依赖管理
@@ -56,4 +64,20 @@ func (c *CIWorker) Dependence() (string, error) {
 	}
 
 	return utils.CmdRun(c.Hicd.Dependence.Cmd)
+}
+
+func (c *CIWorker) Before() (string, error) {
+	log.Output(model.BeforeModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("Work Dir %s", c.WorkDir)}, logrus.InfoLevel).Report()
+
+	os.Chdir(c.WorkDir)
+
+	if c.Hicd.Before.Skip {
+		return " Skip [Before] Stage", nil
+	}
+
+	if len(c.Hicd.Before.Script) == 0 {
+		return "", errors.New("Before Script Can Not Be Empty!")
+	}
+
+	return utils.CmdRun(c.Hicd.Before.Script)
 }
