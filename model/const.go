@@ -67,5 +67,7 @@ const (
 	DependenceModule    = "Dependence"
 	BeforeModule        = "Before"
 	BuildModule         = "Build"
+	TestModule          = "Test"
+	ExceptionModule     = "Exception"
 	WorkerModule        = "Hicd-Worker"
 )

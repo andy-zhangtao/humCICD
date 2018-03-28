@@ -73,6 +73,11 @@ type Build struct {
 	Cmd           Cmd
 	Persistence   Persistence
 	Test          Test
+	Exception     Exception
+}
+
+type Exception struct {
+	Cmd []string
 }
 
 type Make struct {

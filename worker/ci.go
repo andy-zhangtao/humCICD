@@ -98,7 +98,23 @@ func (c *CIWorker) Build() (string, error) {
 
 	os.Chdir(c.WorkDir)
 
-	return buildProject(c.Name, c.WorkDir, c.Hicd)
+	testResult, err := testProject(c.Name, c.WorkDir, c.Hicd)
+	if err != nil {
+		out, _ := buildException(c.Name, c.WorkDir, c.Hicd)
+		return fmt.Sprintf("%s\nException:\n%s", testResult, out), err
+	}
+
+	log.Output(model.TestModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s", testResult)}, logrus.InfoLevel).Report()
+
+	buildResult, err := buildProject(c.Name, c.WorkDir, c.Hicd)
+	if err != nil {
+		out, _ := buildException(c.Name, c.WorkDir, c.Hicd)
+		return fmt.Sprintf("%s\nException:\n%s", buildResult, out), err
+	}
+
+	log.Output(model.BuildModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s", buildResult)}, logrus.InfoLevel).Report()
+	return "", nil
+
 }
 
 // buildProject 构建工程
@@ -144,4 +160,32 @@ func buildProject(name, path string, conf model.HICD) (string, error) {
 		return utils.CmdRun([]string{"go", "build", "-v"})
 	}
 	return utils.CmdRun(conf.Build.Cmd.Cmd)
+}
+
+// testProject 构建前的单元测试
+func testProject(name, path string, conf model.HICD) (string, error) {
+	os.Chdir(path)
+
+	if len(conf.Build.Test.Cmd) == 0 {
+		log.Output(model.TestModule, name, logrus.Fields{"msg": "Use Default Unit Test Command"}, logrus.InfoLevel).Report()
+		return utils.CmdRun([]string{"go", "test", "-v", "./..."})
+	}
+
+	var testCommand []string
+	testCommand = append(testCommand, "go")
+	testCommand = append(testCommand, conf.Build.Test.Cmd...)
+	log.Output(model.TestModule, name, logrus.Fields{"msg": fmt.Sprintf("Use Unit Test Command [%v]", testCommand)}, logrus.InfoLevel).Report()
+	return utils.CmdRun(testCommand)
+}
+
+// buildException 构建过程中的异常处理
+func buildException(name, path string, conf model.HICD) (string, error) {
+	log.Output(model.ExceptionModule, name, logrus.Fields{"msg": "Exception Appear"}, logrus.InfoLevel).Report()
+	os.Chdir(path)
+
+	if len(conf.Build.Exception.Cmd) != 0 {
+		return utils.CmdRun(conf.Build.Exception.Cmd)
+	}
+
+	return "Excepiton Run Away", nil
 }
