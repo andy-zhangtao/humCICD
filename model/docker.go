@@ -15,9 +15,10 @@ type BuildOpts struct {
 }
 
 type DockerOpts struct {
-	Name string            `json:"name"`
-	Img  string            `json:"img"`
-	Port []int             `json:"port"`
-	Env  map[string]string `json:"env"`
-	Cmd  string            `json:"cmd"`
+	Name  string            `json:"name"`
+	Img   string            `json:"img"`
+	Port  []int             `json:"port"`
+	Env   map[string]string `json:"env"`
+	Cmd   string            `json:"cmd"`
+	Binds []string          `json:"binds"`
 }

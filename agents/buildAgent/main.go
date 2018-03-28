@@ -178,6 +178,11 @@ func (this *BuildAgent) buildGolang(msg *model.GitConfigure) {
 			Env: envMap,
 		}},
 	}
+
+	if msg.Configrue.After.Usedocker{
+		opt.DockerOpt[0].Binds=[]string{"/var/run/docker.sock:/var/run/docker.sock"}
+	}
+
 	err := utils.CreateContainer(opt)
 	if err != nil {
 		logrus.Error(err)

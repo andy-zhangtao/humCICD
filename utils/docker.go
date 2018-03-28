@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/fsouza/go-dockerclient"
+	"github.com/sirupsen/logrus"
 )
 
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/3/8.
@@ -44,6 +44,7 @@ func buildContainer(cli *docker.Client, do model.DockerOpts) error {
 		},
 		HostConfig: &docker.HostConfig{
 			AutoRemove: false,
+			Binds:      do.Binds,
 		},
 
 		Context: context.Background(),
