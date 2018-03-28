@@ -6,13 +6,12 @@
 package worker
 
 import (
-	"bytes"
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
+	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -56,15 +55,5 @@ func (c *CIWorker) Dependence() (string, error) {
 		return result, errors.New("Dependence Cmd Can Not Be Empty!")
 	}
 
-	var out, stderr bytes.Buffer
-	var cmd *exec.Cmd
-
-	cmd = exec.Command(c.Hicd.Dependence.Cmd[0], c.Hicd.Dependence.Cmd[1:]...)
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-
-	result = fmt.Sprintf("%s\n%s", out.String(), stderr.String())
-	return result, err
+	return utils.CmdRun(c.Hicd.Dependence.Cmd)
 }
