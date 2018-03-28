@@ -140,7 +140,7 @@ func checkDocker() (client *docker.Client, err error) {
 
 func (this *BuildAgent) handleBuild(msgid string) {
 	configure, err := utils.GetConfigure(msgid)
-	if err != nil{
+	if err != nil {
 		logrus.WithFields(logrus.Fields{"Get Configrue Err": err}).Info(this.Name)
 		return
 	}
@@ -159,7 +159,7 @@ func (this *BuildAgent) buildGolang(msg *model.GitConfigure) {
 		DockerOpt: []model.DockerOpts{model.DockerOpts{
 			Img: "vikings/goagent",
 			Cmd: fmt.Sprintf("-g %s -b %s -n %s", msg.GitUrl, msg.Branch, msg.Name),
-			Env: map[string]string{model.EnvNsqdEndpoint: os.Getenv(model.EnvNsqdEndpoint)},
+			Env: map[string]string{model.EnvNsqdEndpoint: os.Getenv(model.EnvNsqdEndpoint), model.EnvDataAgent: os.Getenv(model.EnvDataAgent)},
 		}},
 	}
 	err := utils.CreateContainer(opt)

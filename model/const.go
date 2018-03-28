@@ -64,4 +64,5 @@ const (
 	DefaultDBConf       = "configure"
 	DefualtEmptyProject = "SYSTEM_LOG"
 	DefualtFinishFlag   = "Handler End"
+	DependenceModule    = "Dependence"
 )

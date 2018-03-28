@@ -16,6 +16,7 @@ import (
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
+	"github.com/andy-zhangtao/humCICD/worker"
 	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -27,6 +28,10 @@ var giturl string
 var branch string
 var name string
 var producer *nsq.Producer
+
+const (
+	BasePath = "/go/src/"
+)
 
 func nsqInit() {
 	var errNum int
@@ -106,17 +111,31 @@ func buildAction(c *cli.Context) error {
 
 	path, err := cloneGit(giturl, utils.ParsePath(giturl), branch)
 	if err != nil {
+		log.Output(model.GoAgent, name, logrus.Fields{"msg": fmt.Sprintf("Clone Error %s", err.Error()), "name": name}, logrus.ErrorLevel).Report()
 		return err
 	}
 
-	/*执行build*/
-	out, err := buildProject(path)
+	configure, err := utils.GetConfigure(name)
 	if err != nil {
-		log.Output(model.GoAgent, name, logrus.Fields{"name": name, "msg": fmt.Sprintf("[%s]\nLog:\n%s ", err.Error(), string(out))}, logrus.ErrorLevel).Report()
+		log.Output(model.GoAgent, name, logrus.Fields{"msg": fmt.Sprintf("Get Configure Error %s", err.Error()), "name": name}, logrus.ErrorLevel).Report()
 		return err
 	}
 
-	log.Output(model.GoAgent, name, logrus.Fields{"msg": fmt.Sprintf("Log:%s ", string(out))}, logrus.InfoLevel).Report()
+	ci := worker.CIWorker{
+		Name:    name,
+		WorkDir: path,
+		Hicd:    configure.Configrue,
+	}
+
+	ci.Do()
+	// /*执行build*/
+	// out, err := buildProject(path)
+	// if err != nil {
+	// 	log.Output(model.GoAgent, name, logrus.Fields{"name": name, "msg": fmt.Sprintf("[%s]\nLog:\n%s ", err.Error(), string(out))}, logrus.ErrorLevel).Report()
+	// 	return err
+	// }
+
+	// log.Output(model.GoAgent, name, logrus.Fields{"msg": fmt.Sprintf("Log:%s ", string(out))}, logrus.InfoLevel).Report()
 	return nil
 }
 

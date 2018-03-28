@@ -41,6 +41,7 @@ func ParsePath(url string) (path string) {
 }
 
 // GetConfigure 调用API获取配置信息
+// idOrName 工程ID或者名称 如果通过ID查询失败，就会通过名称查询
 func GetConfigure(idOrName string) (*model.GitConfigure, error) {
 	if os.Getenv(model.EnvDataAgent) == "" {
 		return nil, errors.New(fmt.Sprintf("[%s]Empty!", model.EnvDataAgent))
