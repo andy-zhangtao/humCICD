@@ -32,7 +32,7 @@ type CIWorker struct {
 func (c *CIWorker) Do() {
 	dependenceResult, err := c.Dependence()
 	if err != nil {
-		log.Output(model.DependenceModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s %s", "Dependence", err.Error())}, logrus.ErrorLevel).Report()
+		log.Output(model.DependenceModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s %s %s", "Dependence", dependenceResult, err.Error())}, logrus.ErrorLevel).Report()
 		return
 	}
 
@@ -59,63 +59,12 @@ func (c *CIWorker) Dependence() (string, error) {
 	var out, stderr bytes.Buffer
 	var cmd *exec.Cmd
 
-	cmd = exec.Command("dep", "init", "-v")
+	cmd = exec.Command(c.Hicd.Dependence.Cmd[0], c.Hicd.Dependence.Cmd[1:]...)
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
 	err := cmd.Run()
 
-	if err != nil {
-		err = errors.New(fmt.Sprintf("%s\n%s", stderr.String(), err.Error()))
-		return result, err
-	}
-
-	return out.String(), nil
-	//logrus.Println(err)
-	//logrus.Println(out.String())
-	//logrus.Println(stderr.String())
-
-	//cmd := exec.Command(c.Hicd.Dependence.Cmd[0], c.Hicd.Dependence.Cmd[1:]...)
-	//stdout, err := cmd.StdoutPipe()
-	//if err != nil {
-	//	return result, err
-	//}
-	//stderr, err := cmd.StderrPipe()
-	//if err != nil {
-	//	return result, err
-	//}
-	//
-	//defer func() {
-	//	stdout.Close()
-	//	stderr.Close()
-	//}()
-	//
-	//if err := cmd.Start(); err != nil {
-	//	return result, err
-	//}
-	//
-	//if err := cmd.Wait(); err != nil {
-	//	return result, err
-	//}
-	//
-	//var data []byte
-	//_, err = stdout.Read(data)
-	//if err != nil {
-	//	return result, err
-	//}
-	//
-	//result = string(data)
-	//
-	//_, err = stderr.Read(data)
-	//if err != nil {
-	//	return result, err
-	//}
-	//
-	//if string(data) != "" {
-	//	err = errors.New(string(data))
-	//} else {
-	//	err = nil
-	//}
-
+	result = fmt.Sprintf("%s\n%s", out.String(), stderr.String())
 	return result, err
 }

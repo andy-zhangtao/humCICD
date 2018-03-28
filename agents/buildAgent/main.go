@@ -153,13 +153,29 @@ func (this *BuildAgent) handleBuild(msgid string) {
 }
 
 func (this *BuildAgent) buildGolang(msg *model.GitConfigure) {
-	/*1. 构建golang容器*/
+	/*1. 构建容器*/
+
+	envMap := map[string]string{
+		model.EnvNsqdEndpoint: os.Getenv(model.EnvNsqdEndpoint),
+		model.EnvDataAgent:    os.Getenv(model.EnvDataAgent),
+	}
+
+	if !msg.Configrue.Env.Skip {
+		for _, env := range msg.Configrue.Env.Var {
+			for key, value := range env {
+				if key != "" && value != "" {
+					envMap[key] = value
+				}
+			}
+		}
+	}
+
 	opt := model.BuildOpts{
 		Client: this.Client,
 		DockerOpt: []model.DockerOpts{model.DockerOpts{
 			Img: "vikings/goagent",
 			Cmd: fmt.Sprintf("-g %s -b %s -n %s", msg.GitUrl, msg.Branch, msg.Name),
-			Env: map[string]string{model.EnvNsqdEndpoint: os.Getenv(model.EnvNsqdEndpoint), model.EnvDataAgent: os.Getenv(model.EnvDataAgent)},
+			Env: envMap,
 		}},
 	}
 	err := utils.CreateContainer(opt)
