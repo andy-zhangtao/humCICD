@@ -235,7 +235,16 @@ func (c *CIWorker) After() (string, error) {
 
 		log.Output(model.AfterModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%v", buildCommand)}, logrus.InfoLevel).Report()
 
-		return utils.CmdRun(buildCommand)
+		buildResult, err := utils.CmdRun(buildCommand)
+		if err != nil {
+			return buildResult, err
+		}
+
+		if len(c.Hicd.After.Script.Cmd) != 0 {
+			return utils.CmdRun(c.Hicd.After.Script.Cmd)
+		}
+
+		return "Build After Stage End", nil
 	}
 
 	return "Skip After Stage", nil
