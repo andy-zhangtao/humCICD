@@ -26,7 +26,9 @@ func FindProjectByName(name string) (project interface{}, err error) {
 
 // SaveConfig 保存配置信息
 func SaveProject(project *model.Project) (string, error) {
-	project.ID = bson.NewObjectId()
+	if project.ID == "" {
+		project.ID = bson.NewObjectId()
+	}
 	err := getProjectMongo().Insert(&project)
 	return project.ID.Hex(), err
 }

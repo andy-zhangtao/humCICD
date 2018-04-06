@@ -190,12 +190,12 @@ var rootMutation = graphql.NewObject(graphql.ObjectConfig{
 					Status: status,
 				}
 
+				logrus.WithFields(logrus.Fields{"id": id, "status": status}).Info(model.DataAgent)
 				newProject, err := db.UpdateProject(id, project)
 				if err != nil {
 					return nil, err
 				}
 
-				// Return affected todo
 				return newProject, nil
 			},
 		},
@@ -270,11 +270,19 @@ var schema, _ = graphql.NewSchema(graphql.SchemaConfig{
 	Mutation: rootMutation,
 })
 
-func executeQuery(query string, schema graphql.Schema) *graphql.Result {
-	result := graphql.Do(graphql.Params{
+func executeQuery(query map[string]interface{}, schema graphql.Schema) *graphql.Result {
+
+	params := graphql.Params{
 		Schema:        schema,
-		RequestString: query,
-	})
+		RequestString: query["query"].(string),
+	}
+
+	if query["variables"] != nil {
+		params.VariableValues = map[string]interface{}{"variables": query["variables"]}
+	}
+
+	result := graphql.Do(params)
+
 	if len(result.Errors) > 0 {
 		fmt.Printf("wrong result, unexpected errors: %v", result.Errors)
 	}
@@ -283,9 +291,29 @@ func executeQuery(query string, schema graphql.Schema) *graphql.Result {
 
 // handleGraphQL 工程操作API
 func handleGraphQL(w http.ResponseWriter, r *http.Request) {
-	result := executeQuery(r.URL.Query().Get("query"), schema)
-	logrus.WithFields(logrus.Fields{"result": result.Data}).Info(model.DataAgent)
-	json.NewEncoder(w).Encode(result)
+	var g map[string]interface{}
+	if r.Method == http.MethodGet {
+		g = make(map[string]interface{})
+		g["query"] = r.URL.Query().Get("query")
+		result := executeQuery(g, schema)
+		logrus.WithFields(logrus.Fields{"result": result.Data}).Info(model.DataAgent)
+		json.NewEncoder(w).Encode(result)
+	}
+
+	if r.Method == http.MethodPost {
+		data, _ := ioutil.ReadAll(r.Body)
+		logrus.WithFields(logrus.Fields{"body": string(data)}).Info(model.DataAgent)
+
+		err := json.Unmarshal(data, &g)
+		if err != nil {
+			json.NewEncoder(w).Encode(err.Error())
+		}
+		logrus.WithFields(logrus.Fields{"graph": g}).Info(model.DataAgent)
+		result := executeQuery(g, schema)
+		logrus.WithFields(logrus.Fields{"result": result.Data}).Info(model.DataAgent)
+		json.NewEncoder(w).Encode(result)
+	}
+
 }
 
 func main() {
