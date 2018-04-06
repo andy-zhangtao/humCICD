@@ -62,6 +62,7 @@ const (
 const (
 	DefaultDBName       = "hicd"
 	DefaultDBConf       = "configure"
+	DefaultProConf      = "project"
 	DefualtEmptyProject = "SYSTEM_LOG"
 	DefualtFinishFlag   = "Handler End"
 	DependenceModule    = "Dependence"

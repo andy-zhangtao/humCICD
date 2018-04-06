@@ -7,6 +7,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -16,11 +17,13 @@ import (
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/gorilla/mux"
+	"github.com/graphql-go/graphql"
 	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 )
 
 // dataAgent 用来将配置数据持久化到数据库当中. 并且提供查询API
+
 var workerHome map[string]chan *nsq.Message
 var workerChan chan *nsq.Message
 /*buildAgent 从NSQ读取工程解析后的数据，然后执行构建任务*/
@@ -123,6 +126,168 @@ func (this *DataAgent) handleBuild(msg model.GitConfigure) {
 	}
 }
 
+// root mutation
+var rootMutation = graphql.NewObject(graphql.ObjectConfig{
+	Name: "RootMutation",
+	Fields: graphql.Fields{
+		/*
+			curl -g 'http://localhost:8080/graphql?query=mutation+_{createTodo(text:"My+new+todo"){id,text,done}}'
+		*/
+		//"createTodo": &graphql.Field{
+		//	Type:        model.ProjectType, // the return type for this field
+		//	Description: "Create new todo",
+		//	Args: graphql.FieldConfigArgument{
+		//		"text": &graphql.ArgumentConfig{
+		//			Type: graphql.NewNonNull(graphql.String),
+		//		},
+		//	},
+		//	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+		//
+		//		// marshall and cast the argument value
+		//		text, _ := params.Args["text"].(string)
+		//
+		//		// figure out new id
+		//		newID := RandStringRunes(8)
+		//
+		//		// perform mutation operation here
+		//		// for e.g. create a Todo and save to DB.
+		//		newTodo := Todo{
+		//			ID:   newID,
+		//			Text: text,
+		//			Done: false,
+		//		}
+		//
+		//		TodoList = append(TodoList, newTodo)
+		//
+		//		// return the new Todo object that we supposedly save to DB
+		//		// Note here that
+		//		// - we are returning a `Todo` struct instance here
+		//		// - we previously specified the return Type to be `todoType`
+		//		// - `Todo` struct maps to `todoType`, as defined in `todoType` ObjectConfig`
+		//		return newTodo, nil
+		//	},
+		//},
+		/*
+			curl -g 'http://localhost:8080/graphql?query=mutation+_{updateTodo(id:"a",done:true){id,text,done}}'
+		*/
+		"updateProject": &graphql.Field{
+			Type:        model.ProjectType, // the return type for this field
+			Description: "Update existing project, mark it activity or unactivity",
+			Args: graphql.FieldConfigArgument{
+				"status": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				// marshall and cast the argument value
+				status, _ := params.Args["status"].(string)
+				id, _ := params.Args["id"].(string)
+
+				project := model.Project{
+					Status: status,
+				}
+
+				newProject, err := db.UpdateProject(id, project)
+				if err != nil {
+					return nil, err
+				}
+
+				// Return affected todo
+				return newProject, nil
+			},
+		},
+	},
+})
+
+// root query
+// we just define a trivial example here, since root query is required.
+// Test with curl
+// curl -g 'http://localhost:8080/project?query={lastTodo{id,text,done}}'
+var rootQuery = graphql.NewObject(graphql.ObjectConfig{
+	Name: "RootQuery",
+	Fields: graphql.Fields{
+		/*
+		   curl -g 'http://localhost:8080/graphql?query={todo(id:"b"){id,text,done}}'
+		*/
+		"project": &graphql.Field{
+			Type:        model.ProjectType,
+			Description: "Get single project",
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"name": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			},
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				idQuery, isOK := params.Args["id"].(string)
+				if isOK {
+					// Search for el with id
+					project, err := db.FindProjectByID(idQuery)
+					if err != nil {
+						return nil, err
+					}
+					p, err := model.Conver2Project(project)
+					if err != nil {
+						return nil, err
+					}
+					logrus.WithFields(logrus.Fields{"project": p}).Info(model.DataAgent)
+					return p, nil
+				}
+
+				return nil, nil
+			},
+		},
+
+		//"lastTodo": &graphql.Field{
+		//	Type:        todoType,
+		//	Description: "Last todo added",
+		//	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+		//		return TodoList[len(TodoList)-1], nil
+		//	},
+		//},
+		//
+		///*
+		//   curl -g 'http://localhost:8080/graphql?query={todoList{id,text,done}}'
+		//*/
+		//"todoList": &graphql.Field{
+		//	Type:        graphql.NewList(todoType),
+		//	Description: "List of todos",
+		//	Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		//		return TodoList, nil
+		//	},
+		//},
+	},
+})
+
+// define schema, with our rootQuery and rootMutation
+var schema, _ = graphql.NewSchema(graphql.SchemaConfig{
+	Query:    rootQuery,
+	Mutation: rootMutation,
+})
+
+func executeQuery(query string, schema graphql.Schema) *graphql.Result {
+	result := graphql.Do(graphql.Params{
+		Schema:        schema,
+		RequestString: query,
+	})
+	if len(result.Errors) > 0 {
+		fmt.Printf("wrong result, unexpected errors: %v", result.Errors)
+	}
+	return result
+}
+
+// handleGraphQL 工程操作API
+func handleGraphQL(w http.ResponseWriter, r *http.Request) {
+	result := executeQuery(r.URL.Query().Get("query"), schema)
+	logrus.WithFields(logrus.Fields{"result": result.Data}).Info(model.DataAgent)
+	json.NewEncoder(w).Encode(result)
+}
+
 func main() {
 	bagent := DataAgent{
 		Name:        model.DataAgent,
@@ -148,7 +313,7 @@ func main() {
 		// 通过name查询git configure数据
 		router.Path("/configure/name").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			data, err := ioutil.ReadAll(request.Body)
-			if err != nil{
+			if err != nil {
 				log.Output(model.DataAgent, "", logrus.Fields{"Read Data Error": err}, logrus.ErrorLevel)
 				return
 			}
@@ -176,9 +341,12 @@ func main() {
 
 		}).Name("GetConfigrue").Methods(http.MethodDelete)
 
+		// GraphQLAPI接口,操作工程数据
+		router.Path("/project").HandlerFunc(handleGraphQL)
 		if err := http.ListenAndServe(":8000", router); err != nil {
 			log.Output(model.DataAgent, "", logrus.Fields{"Bind Port Error": err}, logrus.PanicLevel)
 		}
+
 	}()
 	bagent.Run()
 

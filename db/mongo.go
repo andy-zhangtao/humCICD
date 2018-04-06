@@ -72,3 +72,7 @@ func getSession() *mgo.Session {
 func getConfigureMongo() *mgo.Collection {
 	return getSession().DB(dbname).C(model.DefaultDBConf)
 }
+
+func getProjectMongo() *mgo.Collection {
+	return getSession().DB(dbname).C(model.DefaultProConf)
+}

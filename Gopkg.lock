@@ -32,7 +32,7 @@
   branch = "master"
   name = "github.com/containerd/continuity"
   packages = ["pathdriver"]
-  revision = "d8fb8589b0e8e85b8c8bbaa8840226d0dfeb7371"
+  revision = "3e8f2ea4b190484acb976a5b378d373429639a1a"
 
 [[projects]]
   branch = "master"
@@ -64,7 +64,7 @@
     "pkg/term",
     "pkg/term/windows"
   ]
-  revision = "0c1006f1abc1af7aa6b9847754370d054dfa6c68"
+  revision = "8a9e1808cfdef414e60307b4ccd96719731be304"
 
 [[projects]]
   name = "github.com/docker/go-connections"
@@ -120,6 +120,24 @@
   packages = ["."]
   revision = "53c1911da2b537f792e7cafcb446b05ffe33b996"
   version = "v1.6.1"
+
+[[projects]]
+  name = "github.com/graphql-go/graphql"
+  packages = [
+    ".",
+    "gqlerrors",
+    "language/ast",
+    "language/kinds",
+    "language/lexer",
+    "language/location",
+    "language/parser",
+    "language/printer",
+    "language/source",
+    "language/typeInfo",
+    "language/visitor"
+  ]
+  revision = "1e23489041ba90a66f317fe0deccb236a2fff3cb"
+  version = "v0.7.5"
 
 [[projects]]
   name = "github.com/influxdata/influxdb"
@@ -265,7 +283,7 @@
     "ssh/knownhosts",
     "ssh/terminal"
   ]
-  revision = "80db560fac1fb3e6ac81dbc7f8ae4c061f5257bd"
+  revision = "b2aa35443fbc700ab74c586ae79b81c171851023"
 
 [[projects]]
   branch = "master"
@@ -274,7 +292,7 @@
     "context",
     "context/ctxhttp"
   ]
-  revision = "6078986fec03a1dcc236c34816c71b0e05018fda"
+  revision = "b3c676e531a6dc479fa1b35ac961c13f5e2b4d2e"
 
 [[projects]]
   branch = "master"
@@ -283,7 +301,7 @@
     "unix",
     "windows"
   ]
-  revision = "7ceb54c8418b8f9cdf0177b511d5cbb06e9fae39"
+  revision = "1d206c9fa8975fb4cf00df1dc8bf3283dc24ba0e"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -319,8 +337,8 @@
     "osfs",
     "util"
   ]
-  revision = "027dceab1aa836eb310d92c2eb2266e4dc9f4b81"
-  version = "v4.1.0"
+  revision = "df053870ae7070b0350624ba5a22161ba3796cc0"
+  version = "v4.1.1"
 
 [[projects]]
   name = "gopkg.in/src-d/go-git.v4"
@@ -366,8 +384,8 @@
     "utils/merkletrie/internal/frame",
     "utils/merkletrie/noder"
   ]
-  revision = "1d28459504251497e0ce6132a0fadd5eb44ffd22"
-  version = "v4.2.0"
+  revision = "247cf690745dfd67ccd9f0c07878e6dd85e6c9ed"
+  version = "v4.2.1"
 
 [[projects]]
   name = "gopkg.in/warnings.v0"
@@ -378,6 +396,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "900adad75ffa072b8187364d04ab3a1f230c1efa02892a3a80544295795fb2ec"
+  inputs-digest = "1b9d0dadfe9802015b42c3de9afb2bc69b877ccd15a4c451176824640cd0de86"
   solver-name = "gps-cdcl"
   solver-version = 1
