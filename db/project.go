@@ -12,6 +12,12 @@ import (
 
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/4/6.
 
+// FindAllProject 返回所有工程信息
+func FindAllProject() (projects []model.Project, err error) {
+	err = getProjectMongo().Find(nil).All(&projects)
+	return
+}
+
 // FindProjectByID 根据_id返回工程信息
 func FindProjectByID(id string) (project interface{}, err error) {
 	err = getProjectMongo().Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&project)

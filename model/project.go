@@ -28,9 +28,15 @@ type Project struct {
 var ProjectType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "project",
 	Fields: graphql.Fields{
-		//"_id": &graphql.Field{
-		//	Type: graphql.String,
-		//},
+		"id": &graphql.Field{
+			Type: graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				if pro, ok := p.Source.(Project); ok {
+					return pro.ID.Hex(), nil
+				}
+				return nil, nil
+			},
+		},
 		"name": &graphql.Field{
 			Type: graphql.String,
 		},

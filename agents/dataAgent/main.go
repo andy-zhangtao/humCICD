@@ -19,6 +19,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/graphql-go/graphql"
 	"github.com/nsqio/go-nsq"
+	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -235,14 +236,26 @@ var rootQuery = graphql.NewObject(graphql.ObjectConfig{
 					if err != nil {
 						return nil, err
 					}
-					logrus.WithFields(logrus.Fields{"project": p}).Info(model.DataAgent)
+					logrus.WithFields(logrus.Fields{"Project": p}).Info(model.DataAgent)
 					return p, nil
 				}
-
 				return nil, nil
 			},
 		},
 
+		"projects": &graphql.Field{
+			Type:        graphql.NewList(model.ProjectType),
+			Description: "Get All Projects",
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				projects, err := db.FindAllProject()
+				if err != nil {
+					return nil, err
+				}
+
+				logrus.WithFields(logrus.Fields{"Projects": projects}).Debug(model.DataAgent)
+				return projects, nil
+			},
+		},
 		//"lastTodo": &graphql.Field{
 		//	Type:        todoType,
 		//	Description: "Last todo added",
@@ -291,6 +304,7 @@ func executeQuery(query map[string]interface{}, schema graphql.Schema) *graphql.
 
 // handleGraphQL 工程操作API
 func handleGraphQL(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var g map[string]interface{}
 	if r.Method == http.MethodGet {
 		g = make(map[string]interface{})
@@ -370,8 +384,8 @@ func main() {
 		}).Name("GetConfigrue").Methods(http.MethodDelete)
 
 		// GraphQLAPI接口,操作工程数据
-		router.Path("/project").HandlerFunc(handleGraphQL)
-		if err := http.ListenAndServe(":8000", router); err != nil {
+		router.Path("/hicd").HandlerFunc(handleGraphQL)
+		if err := http.ListenAndServe(":8000", cors.Default().Handler(router)); err != nil {
 			log.Output(model.DataAgent, "", logrus.Fields{"Bind Port Error": err}, logrus.PanicLevel)
 		}
 
