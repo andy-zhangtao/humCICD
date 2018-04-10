@@ -6,6 +6,8 @@
 package db
 
 import (
+	"time"
+
 	"github.com/andy-zhangtao/humCICD/model"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -35,6 +37,10 @@ func SaveProject(project *model.Project) (string, error) {
 	if project.ID == "" {
 		project.ID = bson.NewObjectId()
 	}
+
+	if project.Time == "" {
+		project.Time = time.Now().String()
+	}
 	err := getProjectMongo().Insert(&project)
 	return project.ID.Hex(), err
 }
@@ -44,6 +50,10 @@ func DeleteProjectByID(id string) error {
 	return getProjectMongo().Remove(bson.M{"_id": bson.ObjectIdHex(id)})
 }
 
+func DeleteAllProject() error {
+	_, err := getProjectMongo().RemoveAll(nil)
+	return err
+}
 func UpdateProject(id string, project model.Project) (*model.Project, error) {
 	tempProject, err := FindProjectByID(id)
 	if err != nil {
@@ -59,7 +69,7 @@ func UpdateProject(id string, project model.Project) (*model.Project, error) {
 		oldProject.Name = project.Name
 	}
 
-	if project.Branch != "" {
+	if len(project.Branch) == 0 {
 		oldProject.Branch = project.Branch
 	}
 

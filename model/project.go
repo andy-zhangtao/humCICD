@@ -16,9 +16,12 @@ import (
 type Project struct {
 	ID     bson.ObjectId `json:"_id" bson:"_id"`
 	Name   string        `json:"name"`
-	Branch string        `json:"branch"`
+	Desc   string        `json:"desc"`
+	Branch []string      `json:"branch"`
+	Tag    []string      `json:"tag"`
 	// Status 工程状态
 	Status string `json:"status"`
+	Time   string `json:"time"`
 }
 
 // define custom Project ObjectType `projectType` for our Golang struct `Project`
@@ -40,8 +43,14 @@ var ProjectType = graphql.NewObject(graphql.ObjectConfig{
 		"name": &graphql.Field{
 			Type: graphql.String,
 		},
-		"branch": &graphql.Field{
+		"desc": &graphql.Field{
 			Type: graphql.String,
+		},
+		"branch": &graphql.Field{
+			Type: graphql.NewList(graphql.String),
+		},
+		"tag": &graphql.Field{
+			Type: graphql.NewList(graphql.String),
 		},
 		"status": &graphql.Field{
 			Type: graphql.String,

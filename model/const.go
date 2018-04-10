@@ -20,6 +20,10 @@ const (
 	EnvDataAgent = "HICD_DATA_AGENT"
 	// EnvInfluxDB InfluxDB地址
 	EnvInfluxDB = "HICD_INFLUX_DB"
+	// EnvTickTime 定时触发间隔时间
+	EnvTickTime = "HICD_TICK"
+	// EnvGitHubToken Github API Key
+	EnvGitHubToken = "HICD_GITHUB_TOKEN"
 )
 
 const (
@@ -31,6 +35,7 @@ const (
 	TrafficAgent = "trafficAgent"
 	ReportTools  = "report"
 	InfluxTools  = "Influx"
+	SpiderAgent  = "spiderAgent"
 )
 
 const (
