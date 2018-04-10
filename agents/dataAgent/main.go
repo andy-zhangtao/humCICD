@@ -290,8 +290,9 @@ func executeQuery(query map[string]interface{}, schema graphql.Schema) *graphql.
 		RequestString: query["query"].(string),
 	}
 
+	logrus.WithFields(logrus.Fields{"query": query}).Info(model.DataAgent)
 	if query["variables"] != nil {
-		params.VariableValues = map[string]interface{}{"variables": query["variables"]}
+		params.VariableValues = query["variables"].(map[string]interface{})
 	}
 
 	result := graphql.Do(params)
