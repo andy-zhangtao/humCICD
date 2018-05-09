@@ -36,6 +36,12 @@ build-gitAgent:
 release-gitAgent:
 	cd agents/gitAgent; make release
 
+build-githubAgent:
+	cd agents/gitAgent; make
+
+release-githubAgent:
+	cd agents/githubAgent; make release
+
 build-client: build-goAgent build-buildAgent build-gitAgent build-trafficAgent build-dataAgent build-echoAgent
 	echo "Build Agents"
 

@@ -249,6 +249,7 @@ var rootQuery = graphql.NewObject(graphql.ObjectConfig{
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				projects, err := db.FindAllProject()
 				if err != nil {
+					logrus.WithFields(logrus.Fields{"Query Projects Error": err.Error()}).Error(model.DataAgent)
 					return nil, err
 				}
 

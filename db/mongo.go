@@ -76,3 +76,7 @@ func getConfigureMongo() *mgo.Collection {
 func getProjectMongo() *mgo.Collection {
 	return getSession().DB(dbname).C(model.DefaultProConf)
 }
+
+func getGitHubSyncMongo() *mgo.Collection{
+	return getSession().DB(dbname).C(model.DefaultGitHubSync)
+}

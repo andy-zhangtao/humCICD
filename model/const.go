@@ -68,6 +68,7 @@ const (
 	DefaultDBName       = "hicd"
 	DefaultDBConf       = "configure"
 	DefaultProConf      = "project"
+	DefaultGitHubSync   = "github_sync"
 	DefualtEmptyProject = "SYSTEM_LOG"
 	DefualtFinishFlag   = "Handler End"
 	DependenceModule    = "Dependence"
@@ -77,4 +78,8 @@ const (
 	ExceptionModule     = "Exception"
 	AfterModule         = "After"
 	WorkerModule        = "Hicd-Worker"
+)
+
+const (
+	Env_HICD_GitHub_Token = "ENV_HICD_GITHUB_TOKEN"
 )

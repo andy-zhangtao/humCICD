@@ -19,6 +19,10 @@ import (
 var Reporter *nsq.Producer
 
 func init() {
+	if os.Getenv(model.EnvNsqdEndpoint) == "" {
+		logrus.WithFields(logrus.Fields{model.EnvNsqdEndpoint:"Empty!"}).Error(model.ReportTools)
+		os.Exit(-1)
+	}
 	var err error
 	var errNum int
 	nsq_endpoint := os.Getenv(model.EnvNsqdEndpoint)

@@ -5,6 +5,8 @@
 
 package model
 
+import "gopkg.in/mgo.v2/bson"
+
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/4/10.
 type GitHubProject struct {
 	Name        string             `json:"name"`
@@ -23,4 +25,13 @@ type GitHubProjectNode struct {
 
 type GitHubProjectNode_node struct {
 	Name string `json:"name"`
+}
+
+type GitHubSyncData struct {
+	ID          bson.ObjectId `json:"_id" bson:"_id"`
+	Name        string        `json:"name" bson:"name"`
+	CreatedAt   string        `json:"created_at" bson:"createdAt"`
+	UpdatedAt   string        `json:"updated_at" bson:"updatedAt"`
+	Url         string        `json:"url" bson:"url"`
+	Description string        `json:"description" bson:"description"`
 }
