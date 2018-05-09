@@ -24,7 +24,6 @@ const (
 )
 
 func main() {
-	//b251303eec915a20c6b499af8263b28e46670046
 	//定时查询GitHub 工程
 	go syncGitHubInTime()
 
