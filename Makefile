@@ -42,10 +42,16 @@ build-githubAgent:
 release-githubAgent:
 	cd agents/githubAgent; make release
 
-build-client: build-goAgent build-buildAgent build-gitAgent build-trafficAgent build-dataAgent build-echoAgent
+build-graphqlAgent:
+	cd agents/graphqlAgent; make
+
+release-graphqlAgent:
+	cd agents/graphqlAgent; make release
+
+build-client: build-goAgent build-buildAgent build-gitAgent build-trafficAgent build-dataAgent build-echoAgent build-githubAgent build-graphqlAgent
 	echo "Build Agents"
 
-release-client: release-goAgent release-buildAgent release-gitAgent release-trafficAgent release-dataAgent release-echoAgent
+release-client: release-goAgent release-buildAgent release-gitAgent release-trafficAgent release-dataAgent release-echoAgent release-githubAgent release-graphqlAgent
 	echo "Release Agents"
 
 build: build-client
