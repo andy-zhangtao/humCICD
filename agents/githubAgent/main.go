@@ -97,13 +97,21 @@ func syncGitHub() (err error) {
 	}
 	//logrus.WithFields(logrus.Fields{"total": len(query.Viewer.Repositories.Edges)}).Info(ModelName)
 	//logrus.WithFields(logrus.Fields{"viewer": query.Viewer.Repositories.Edges[len(query.Viewer.Repositories.Edges)-1].Cursor}).Info(ModelName)
+
 	for _, g := range query.Viewer.Repositories.Edges {
+		branchs, err := syncBranchs(g.Node.Name)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{"Query Branch Error": err.Error(), "Repository": g.Node.Name}).Error(ModelName)
+			continue
+		}
+
 		syncData = append(syncData, model.GitHubSyncData{
 			Name:        g.Node.Name,
 			CreatedAt:   g.Node.CreatedAt,
 			UpdatedAt:   g.Node.UpdatedAt,
 			Url:         g.Node.Url,
 			Description: g.Node.Description,
+			Branchs:     branchs,
 		})
 	}
 	cursor := query.Viewer.Repositories.Edges[len(query.Viewer.Repositories.Edges)-1].Cursor
@@ -142,12 +150,19 @@ func syncGitHub() (err error) {
 
 		cursor = queryWithCursor.Viewer.Repositories.Edges[len(queryWithCursor.Viewer.Repositories.Edges)-1].Cursor
 		for _, g := range queryWithCursor.Viewer.Repositories.Edges {
+			branchs, err := syncBranchs(g.Node.Name)
+			if err != nil {
+				logrus.WithFields(logrus.Fields{"Query Branch Error": err.Error(), "Repository": g.Node.Name}).Error(ModelName)
+				continue
+			}
+
 			syncData = append(syncData, model.GitHubSyncData{
 				Name:        g.Node.Name,
 				CreatedAt:   g.Node.CreatedAt,
 				UpdatedAt:   g.Node.UpdatedAt,
 				Url:         g.Node.Url,
 				Description: g.Node.Description,
+				Branchs:     branchs,
 			})
 		}
 	}
@@ -158,4 +173,41 @@ func syncGitHub() (err error) {
 		return
 	}
 	return service.SaveGitHubSync(syncData)
+}
+
+func syncBranchs(name string) (branchs []string, err error) {
+	var query struct {
+		Repository struct {
+			Refs struct {
+				Edges []struct {
+					Node struct {
+						Name string `json:"name"`
+					}
+				}
+			} `graphql:"refs(refPrefix:$refPrefix,first:100)"`
+		} `graphql:"repository(owner:$owner,name:$name)"`
+	}
+
+	variables := map[string]interface{}{
+		"owner":     graphql.String(os.Getenv(model.Env_HICD_GitHub_Name)),
+		"name":      graphql.String(name),
+		"refPrefix": graphql.String("refs/heads/"),
+	}
+
+	auth := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: os.Getenv(model.Env_HICD_GitHub_Token)},
+	)
+
+	httpClient := oauth2.NewClient(context.Background(), auth)
+	client := graphql.NewClient("https://api.github.com/graphql", httpClient)
+	err = client.Query(context.Background(), &query, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, e := range query.Repository.Refs.Edges {
+		branchs = append(branchs, e.Node.Name)
+	}
+
+	return
 }

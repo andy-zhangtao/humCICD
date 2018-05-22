@@ -34,4 +34,5 @@ type GitHubSyncData struct {
 	UpdatedAt   string        `json:"updated_at" bson:"updatedAt"`
 	Url         string        `json:"url" bson:"url"`
 	Description string        `json:"description" bson:"description"`
+	Branchs     []string      `json:"branchs" bson:"branchs"`
 }

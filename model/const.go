@@ -82,4 +82,5 @@ const (
 
 const (
 	Env_HICD_GitHub_Token = "ENV_HICD_GITHUB_TOKEN"
+	Env_HICD_GitHub_Name  = "ENV_HICD_GITHUB_NAME"
 )

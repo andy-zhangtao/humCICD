@@ -69,5 +69,14 @@ var GitHubType = graphql.NewObject(graphql.ObjectConfig{
 				return nil, nil
 			},
 		},
+		"branch": &graphql.Field{
+			Type: graphql.NewList(graphql.String),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				if g, ok := p.Source.(model.GitHubSyncData); ok {
+					return g.Branchs, nil
+				}
+				return nil, nil
+			},
+		},
 	},
 })
