@@ -15,13 +15,13 @@ import (
 // Project 工程数据
 type Project struct {
 	ID     bson.ObjectId `json:"_id" bson:"_id"`
-	Name   string        `json:"name"`
-	Desc   string        `json:"desc"`
-	Branch []string      `json:"branch"`
-	Tag    []string      `json:"tag"`
+	Name   string        `json:"name" bson:"name"`
+	Desc   string        `json:"desc" bson:"desc"`
+	Branch []string      `json:"branch" bson:"branch"`
+	Tag    []string      `json:"tag" bson:"tag"`
 	// Status 工程状态
-	Status string `json:"status"`
-	Time   string `json:"time"`
+	Status string `json:"status" bson:"status"`
+	Time   string `json:"time" bson:"time"`
 }
 
 // define custom Project ObjectType `projectType` for our Golang struct `Project`
