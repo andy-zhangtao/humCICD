@@ -10,9 +10,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/andy-zhangtao/bwidow"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/mgo.v2"
+	"github.com/globalsign/mgo"
 )
 
 // Write by zhangtao<ztao8607@gmail.com> . In 2018/3/19.
@@ -22,6 +23,7 @@ var password = os.Getenv(model.EnvMongoPasswd)
 var dbname = os.Getenv(model.EnvMongoDB)
 var session *mgo.Session
 var ModuleName = "Mongo-Init"
+var bw *bwidow.BW
 
 func check() error {
 	if endpoint == "" {
@@ -63,6 +65,18 @@ func init() {
 	}
 
 	logrus.WithFields(logrus.Fields{"Mongo Server": b.Version}).Info(ModuleName)
+
+	//	Use Black Widow
+	bw = bwidow.GetWidow()
+	err = bw.Driver(bwidow.DRIVER_MONGO)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"BWidow Driver Init Error": err}).Errorln(ModuleName)
+		return
+	}
+
+	bw.Map(model.GitHubSyncData{}, model.DB_GITHUB_SYNC)
+
+	logrus.WithFields(logrus.Fields{"BWidow Init Sucess Version": bw.Version()}).Info(ModuleName)
 }
 
 func getSession() *mgo.Session {
@@ -77,6 +91,6 @@ func getProjectMongo() *mgo.Collection {
 	return getSession().DB(dbname).C(model.DefaultProConf)
 }
 
-func getGitHubSyncMongo() *mgo.Collection{
+func getGitHubSyncMongo() *mgo.Collection {
 	return getSession().DB(dbname).C(model.DefaultGitHubSync)
 }

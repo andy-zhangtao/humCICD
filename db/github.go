@@ -6,9 +6,9 @@
 package db
 
 import (
-	"github.com/andy-zhangtao/humCICD/model"
-	"gopkg.in/mgo.v2/bson"
-)
+			"github.com/andy-zhangtao/humCICD/model"
+	"github.com/globalsign/mgo/bson"
+	)
 
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/5/9.
 
@@ -34,6 +34,12 @@ func GetGitHubSyncByName(name string) (s model.GitHubSyncData, err error) {
 }
 
 func DeleteAllGitHubSync() (err error) {
-	_, err = getGitHubSyncMongo().RemoveAll(nil)
-	return
+	//_, err = getGitHubSyncMongo().RemoveAll(nil)
+	//return
+	_, err = bw.DeleteAll(new(model.GitHubSyncData))
+	return err
+}
+
+func SaveALLGitHubSync(s []model.GitHubSyncData) (err error) {
+	return bw.SaveAll(s)
 }

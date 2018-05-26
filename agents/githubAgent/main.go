@@ -14,6 +14,7 @@ import (
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/service"
 	"github.com/andy-zhangtao/humCICD/utils"
+	"github.com/globalsign/mgo/bson"
 	"github.com/shurcooL/graphql"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -45,7 +46,7 @@ func init() {
 
 func syncGitHubInTime() {
 	if err := syncGitHub(); err != nil {
-		logrus.WithFields(logrus.Fields{"Query Repository Error": err}).Error(ModelName)
+		logrus.WithFields(logrus.Fields{"Sync Repository Error": err}).Error(ModelName)
 	}
 	for {
 		now := time.Now()
@@ -106,6 +107,7 @@ func syncGitHub() (err error) {
 		}
 
 		syncData = append(syncData, model.GitHubSyncData{
+			ID:          bson.NewObjectId(),
 			Name:        g.Node.Name,
 			CreatedAt:   g.Node.CreatedAt,
 			UpdatedAt:   g.Node.UpdatedAt,
@@ -157,6 +159,7 @@ func syncGitHub() (err error) {
 			}
 
 			syncData = append(syncData, model.GitHubSyncData{
+				ID:          bson.NewObjectId(),
 				Name:        g.Node.Name,
 				CreatedAt:   g.Node.CreatedAt,
 				UpdatedAt:   g.Node.UpdatedAt,

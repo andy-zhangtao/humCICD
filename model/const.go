@@ -50,7 +50,7 @@ const (
 )
 
 const (
-	BuildSuc   = iota
+	BuildSuc = iota
 	BuildFaild
 )
 
@@ -60,7 +60,7 @@ const (
 )
 
 const (
-	PushEventType      = iota
+	PushEventType = iota
 	BranchTagEventType
 )
 
@@ -83,4 +83,8 @@ const (
 const (
 	Env_HICD_GitHub_Token = "ENV_HICD_GITHUB_TOKEN"
 	Env_HICD_GitHub_Name  = "ENV_HICD_GITHUB_NAME"
+)
+
+const (
+	DB_GITHUB_SYNC = "github_sync"
 )

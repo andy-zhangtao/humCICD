@@ -23,16 +23,25 @@
   revision = "cd527374f1e5bff4938207604a14f2e38a9cf512"
 
 [[projects]]
+  branch = "alpha"
+  name = "github.com/andy-zhangtao/bwidow"
+  packages = ["."]
+  revision = "6181e8c8509c305e3e6e8ed278b4b592d6c7999d"
+
+[[projects]]
   branch = "master"
   name = "github.com/andy-zhangtao/gogather"
-  packages = ["tools"]
-  revision = "f9c02749ba8d77c5abec01840e2f9009101fe580"
+  packages = [
+    "tools",
+    "zReflect"
+  ]
+  revision = "bac5ced7d101364ab9e7332744f952c945e0f8e0"
 
 [[projects]]
   branch = "master"
   name = "github.com/containerd/continuity"
   packages = ["pathdriver"]
-  revision = "c6cef34830231743494fe2969284df7b82cc0ad0"
+  revision = "d3c23511c1bf5851696cba83143d9cbcd666869b"
 
 [[projects]]
   branch = "master"
@@ -64,7 +73,7 @@
     "pkg/term",
     "pkg/term/windows"
   ]
-  revision = "fff01bc14d96b323ecafb18f8c33c62561677fbb"
+  revision = "9c2c887b125df56e622d20ebbbe626c55b61e44a"
 
 [[projects]]
   name = "github.com/docker/go-connections"
@@ -104,6 +113,18 @@
   version = "v1.2.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/globalsign/mgo"
+  packages = [
+    ".",
+    "bson",
+    "internal/json",
+    "internal/sasl",
+    "internal/scram"
+  ]
+  revision = "efe0945164a7e582241f37ae8983c075f8f2e870"
+
+[[projects]]
   name = "github.com/gogo/protobuf"
   packages = ["proto"]
   revision = "1adfc126b41513cc696b209667c8656ea7aac67c"
@@ -119,19 +140,19 @@
   branch = "master"
   name = "github.com/golang/snappy"
   packages = ["."]
-  revision = "553a641470496b2327abcac10b36396bd98e45c9"
+  revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
 
 [[projects]]
   name = "github.com/gorilla/context"
   packages = ["."]
-  revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
-  version = "v1.1"
+  revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
-  revision = "53c1911da2b537f792e7cafcb446b05ffe33b996"
-  version = "v1.6.1"
+  revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+  version = "v1.6.2"
 
 [[projects]]
   name = "github.com/graphql-go/graphql"
@@ -158,8 +179,8 @@
     "models",
     "pkg/escape"
   ]
-  revision = "02d7d4f043b34ecb4e9b2dbec298c6f9450c2a32"
-  version = "v1.5.2"
+  revision = "89e084a80fb1e0bf5e7d38038e3367f821fdf3d7"
+  version = "v1.5.3"
 
 [[projects]]
   branch = "master"
@@ -183,7 +204,7 @@
   branch = "master"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
-  revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
+  revision = "3864e76763d94a6df2f9960b16a20a33da9f9a66"
 
 [[projects]]
   name = "github.com/nsqio/go-nsq"
@@ -236,8 +257,8 @@
 [[projects]]
   name = "github.com/rs/cors"
   packages = ["."]
-  revision = "feef513b9575b32f84bafa580aad89b011259019"
-  version = "v1.3.0"
+  revision = "ca016a06a5753f8ba03029c0aa5e54afb1bf713f"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/sergi/go-diff"
@@ -259,7 +280,7 @@
     "ident",
     "internal/jsonutil"
   ]
-  revision = "2feaaa7394a54a63e6d46b6400cc204abf30deb6"
+  revision = "62c9ce094e75302d560f7adcdf16c06d05aaa958"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -317,7 +338,7 @@
     "ssh/knownhosts",
     "ssh/terminal"
   ]
-  revision = "2d027ae1dddd4694d54f7a8b6cbe78dca8720226"
+  revision = "a3beeb748656e13e54256fd2cde19e058f41f60f"
 
 [[projects]]
   branch = "master"
@@ -326,7 +347,7 @@
     "context",
     "context/ctxhttp"
   ]
-  revision = "f73e4c9ed3b7ebdd5f699a16a880c2b1994e50dd"
+  revision = "dfa909b99c79129e1100513e5cd36307665e5723"
 
 [[projects]]
   branch = "master"
@@ -335,7 +356,7 @@
     ".",
     "internal"
   ]
-  revision = "cdc340f7c179dbbfa4afd43b7614e8fcadde4269"
+  revision = "770e5ebd4ab27c4d70b0983674d138217f5e2c72"
 
 [[projects]]
   branch = "master"
@@ -344,7 +365,7 @@
     "unix",
     "windows"
   ]
-  revision = "64746a42f36bf0832f86b76004f1699dbeb33e4f"
+  revision = "c11f84a56e43e20a78cee75a7c034031ecf57d1f"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -372,18 +393,6 @@
   ]
   revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
   version = "v1.0.0"
-
-[[projects]]
-  branch = "v2"
-  name = "gopkg.in/mgo.v2"
-  packages = [
-    ".",
-    "bson",
-    "internal/json",
-    "internal/sasl",
-    "internal/scram"
-  ]
-  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
 
 [[projects]]
   name = "gopkg.in/src-d/go-billy.v4"
@@ -441,8 +450,8 @@
     "utils/merkletrie/internal/frame",
     "utils/merkletrie/noder"
   ]
-  revision = "b30763cb64afa91c016b23e905af0a378eb1b76d"
-  version = "v4.3.1"
+  revision = "57570e84f8c5739f0f4a59387493e590e709dde9"
+  version = "v4.4.0"
 
 [[projects]]
   name = "gopkg.in/warnings.v0"
@@ -453,6 +462,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "039bc2ae019c91a2f79ebbf149ddeffc164536ae9d28cb7e0c49d07a7dc5c4ff"
+  inputs-digest = "7939010fd792168cb112b090f6389af807cfe3de20408663459ebc2dc873fdcb"
   solver-name = "gps-cdcl"
   solver-version = 1

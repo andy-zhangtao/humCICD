@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/andy-zhangtao/humCICD/model"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo/bson"
 )
 
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/4/6.

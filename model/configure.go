@@ -5,7 +5,7 @@
 
 package model
 
-import "gopkg.in/mgo.v2/bson"
+import "github.com/globalsign/mgo/bson"
 
 // Write by zhangtao<ztao8607@gmail.com> . In 2018/3/7.
 type Config struct {

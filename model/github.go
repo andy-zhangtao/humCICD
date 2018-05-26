@@ -5,7 +5,7 @@
 
 package model
 
-import "gopkg.in/mgo.v2/bson"
+import "github.com/globalsign/mgo/bson"
 
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/4/10.
 type GitHubProject struct {
@@ -29,10 +29,10 @@ type GitHubProjectNode_node struct {
 
 type GitHubSyncData struct {
 	ID          bson.ObjectId `json:"_id" bson:"_id"`
-	Name        string        `json:"name" bson:"name"`
+	Name        string        `json:"name" bson:"name" bw:"name"`
 	CreatedAt   string        `json:"created_at" bson:"createdAt"`
 	UpdatedAt   string        `json:"updated_at" bson:"updatedAt"`
-	Url         string        `json:"url" bson:"url"`
+	Url         string        `json:"url" bson:"url" bw:"url"`
 	Description string        `json:"description" bson:"description"`
 	Branchs     []string      `json:"branchs" bson:"branchs"`
 }

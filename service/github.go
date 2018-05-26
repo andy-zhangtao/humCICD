@@ -17,14 +17,14 @@ import (
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/5/9.
 
 func SaveGitHubSync(sync []model.GitHubSyncData) (err error) {
-	for _, s := range sync {
-		if err = db.SaveGitHubSync(s); err != nil {
-			err = errors.New(fmt.Sprintf("Add GitHubSync Error [%s] sync [%v]", err.Error(), s))
-			return
-		}
-	}
+	//for _, s := range sync {
+	//	if err = db.SaveGitHubSync(s); err != nil {
+	//		err = errors.New(fmt.Sprintf("Add GitHubSync Error [%s] sync [%v]", err.Error(), s))
+	//		return
+	//	}
+	//}
 
-	return
+	return db.SaveALLGitHubSync(sync)
 }
 
 func DeleGitHubSync(s model.GitHubSyncData) (err error) {
