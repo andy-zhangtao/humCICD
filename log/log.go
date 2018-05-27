@@ -9,12 +9,15 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/andy-zhangtao/gogather/zlog"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/sirupsen/logrus"
 )
 
 // Write by zhangtao<ztao8607@gmail.com> . In 2018/3/15.
+
+var z *zlog.Zlog
 
 type Log struct {
 	Name    string `json:"name"`
@@ -71,4 +74,12 @@ func (l *Log) Report() {
 	}
 
 	utils.Reporter.Publish(model.HicdOutTopic, data)
+}
+
+func Z() (*zlog.Zlog) {
+	return z
+}
+
+func init() {
+	z = zlog.GetZlog()
 }

@@ -32,10 +32,12 @@
   branch = "master"
   name = "github.com/andy-zhangtao/gogather"
   packages = [
+    "random",
     "tools",
-    "zReflect"
+    "zReflect",
+    "zlog"
   ]
-  revision = "bac5ced7d101364ab9e7332744f952c945e0f8e0"
+  revision = "4d0d9bdd467fdfac6bc85a49bfdd6e3bc45e1115"
 
 [[projects]]
   branch = "master"
@@ -247,6 +249,12 @@
   packages = ["."]
   revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
   version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/petermattis/goid"
+  packages = ["."]
+  revision = "b0b1615b78e5ee59739545bb38426383b2cda4c9"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -462,6 +470,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7939010fd792168cb112b090f6389af807cfe3de20408663459ebc2dc873fdcb"
+  inputs-digest = "b6871a774ac46ebb56b043b3ad4856ff1c236dde37042548b40fef447396fb96"
   solver-name = "gps-cdcl"
   solver-version = 1

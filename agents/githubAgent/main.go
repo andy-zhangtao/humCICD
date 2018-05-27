@@ -7,10 +7,11 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"os"
 	"time"
 
+	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/service"
 	"github.com/andy-zhangtao/humCICD/utils"
@@ -34,32 +35,34 @@ func main() {
 
 func init() {
 	if err := utils.CheckGitHubToken(); err != nil {
-		logrus.WithFields(logrus.Fields{"Check GitHub Token Error": err}).Error(ModelName)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Check GitHub Token Error": err})).Error(ModelName)
 		os.Exit(-1)
 	}
 
 	if err := utils.CheckMongo(); err != nil {
-		logrus.WithFields(logrus.Fields{"Check Mongo Error": err}).Error(ModelName)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Check Mongo Error": err})).Error(ModelName)
 		os.Exit(-1)
 	}
+
+
 }
 
 func syncGitHubInTime() {
 	if err := syncGitHub(); err != nil {
-		logrus.WithFields(logrus.Fields{"Sync Repository Error": err}).Error(ModelName)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Sync Repository Error": err})).Error(ModelName)
 	}
 	for {
 		now := time.Now()
 		next := now.Add(time.Hour * 24)
 		next = time.Date(next.Year(), next.Month(), next.Day(), 0, 0, 0, 0, next.Location())
 		t := time.NewTimer(next.Sub(now))
-		log.Printf("下次采集时间为[%s]\n", next.Format("200601021504"))
+		fmt.Printf("下次采集时间为[%s]\n", next.Format("200601021504"))
 
 		select {
 		case <-t.C:
 			err := syncGitHub()
 			if err != nil {
-				log.Println(err)
+				fmt.Println(err)
 			}
 		}
 	}
@@ -102,7 +105,7 @@ func syncGitHub() (err error) {
 	for _, g := range query.Viewer.Repositories.Edges {
 		branchs, err := syncBranchs(g.Node.Name)
 		if err != nil {
-			logrus.WithFields(logrus.Fields{"Query Branch Error": err.Error(), "Repository": g.Node.Name}).Error(ModelName)
+			logrus.WithFields(log.Z().Fields(logrus.Fields{"Query Branch Error": err.Error(), "Repository": g.Node.Name})).Error(ModelName)
 			continue
 		}
 
@@ -154,7 +157,7 @@ func syncGitHub() (err error) {
 		for _, g := range queryWithCursor.Viewer.Repositories.Edges {
 			branchs, err := syncBranchs(g.Node.Name)
 			if err != nil {
-				logrus.WithFields(logrus.Fields{"Query Branch Error": err.Error(), "Repository": g.Node.Name}).Error(ModelName)
+				logrus.WithFields(log.Z().Fields(logrus.Fields{"Query Branch Error": err.Error(), "Repository": g.Node.Name})).Error(ModelName)
 				continue
 			}
 
@@ -170,7 +173,7 @@ func syncGitHub() (err error) {
 		}
 	}
 
-	logrus.WithFields(logrus.Fields{"Sync Data": len(syncData)}).Info(ModelName)
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"Sync Data": len(syncData)})).Info(ModelName)
 
 	if err = service.RemoveAllGitHubSync(); err != nil {
 		return

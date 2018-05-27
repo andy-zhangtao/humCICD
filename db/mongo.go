@@ -11,9 +11,10 @@ import (
 	"os"
 
 	"github.com/andy-zhangtao/bwidow"
+	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
-	"github.com/sirupsen/logrus"
 	"github.com/globalsign/mgo"
+	"github.com/sirupsen/logrus"
 )
 
 // Write by zhangtao<ztao8607@gmail.com> . In 2018/3/19.
@@ -64,19 +65,19 @@ func init() {
 		panic(err)
 	}
 
-	logrus.WithFields(logrus.Fields{"Mongo Server": b.Version}).Info(ModuleName)
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"Mongo Server": b.Version})).Info(ModuleName)
 
 	//	Use Black Widow
 	bw = bwidow.GetWidow()
 	err = bw.Driver(bwidow.DRIVER_MONGO)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"BWidow Driver Init Error": err}).Errorln(ModuleName)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"BWidow Driver Init Error": err})).Errorln(ModuleName)
 		return
 	}
 
 	bw.Map(model.GitHubSyncData{}, model.DB_GITHUB_SYNC)
 
-	logrus.WithFields(logrus.Fields{"BWidow Init Sucess Version": bw.Version()}).Info(ModuleName)
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"BWidow Init Sucess Version": bw.Version()})).Info(ModuleName)
 }
 
 func getSession() *mgo.Session {
