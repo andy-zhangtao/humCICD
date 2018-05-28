@@ -26,7 +26,7 @@
   branch = "alpha"
   name = "github.com/andy-zhangtao/bwidow"
   packages = ["."]
-  revision = "6181e8c8509c305e3e6e8ed278b4b592d6c7999d"
+  revision = "94aab3bf25b066d6a7d1234827b19ba0d42dfdac"
 
 [[projects]]
   branch = "master"
@@ -37,7 +37,7 @@
     "zReflect",
     "zlog"
   ]
-  revision = "c85a2aaaf42c72d3ba3a815369ce4e0090877796"
+  revision = "fe9ea0bc8f25faa4ca382c5c152278ea95736f66"
 
 [[projects]]
   branch = "master"

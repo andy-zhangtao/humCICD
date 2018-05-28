@@ -18,7 +18,7 @@ import (
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/3/8.
 
 const (
-	ModuleName = "Docker-Util-Service"
+	ModuleName = "Util-Service"
 )
 
 func CreateContainer(opt model.BuildOpts) error {

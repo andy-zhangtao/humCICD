@@ -11,7 +11,6 @@ import (
 
 	"github.com/andy-zhangtao/gogather/zlog"
 	"github.com/andy-zhangtao/humCICD/model"
-	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -42,6 +41,7 @@ func Output(modelName, project string, fields logrus.Fields, level logrus.Level)
 		logrus.WithFields(fields).Debug(modelName)
 	}
 
+	logrus.WithFields(z.Fields(fields)).Info(modelName)
 	if _, ok := fields["msg"]; ok {
 		content := fields["msg"]
 		if level < logrus.WarnLevel {
@@ -73,7 +73,7 @@ func (l *Log) Report() {
 		return
 	}
 
-	utils.Reporter.Publish(model.HicdOutTopic, data)
+	Reporter.Publish(model.HicdOutTopic, data)
 }
 
 func Z() (*zlog.Zlog) {

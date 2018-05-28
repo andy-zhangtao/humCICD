@@ -19,6 +19,9 @@ import (
 
 // Write by zhangtao<ztao8607@gmail.com> . In 2018/3/27.
 // 执行CI步骤
+const (
+	ModuleName = "Worker-Service"
+)
 
 type CIWorker struct {
 	// Name 工程名称
@@ -32,14 +35,17 @@ type CIWorker struct {
 func (c *CIWorker) Do() {
 	dependenceResult, err := c.Dependence()
 	if err != nil {
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"msg": fmt.Sprintf("%s\n%s %s", "Dependence", dependenceResult, err.Error())})).Error(ModuleName)
 		log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s %s", "Dependence", dependenceResult, err.Error())}, logrus.ErrorLevel).Report()
 		return
 	}
 
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"msg": fmt.Sprintf("%s\n%s", "Dependence", dependenceResult)})).Info(ModuleName)
 	log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s", "Dependence", dependenceResult)}, logrus.InfoLevel).Report()
 
 	beforeResult, err := c.Before()
 	if err != nil {
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"msg": fmt.Sprintf("%s\n%s %s", "Before", beforeResult, err.Error())})).Error(ModuleName)
 		log.Output(model.WorkerModule, c.Name, logrus.Fields{"msg": fmt.Sprintf("%s\n%s %s", "Before", beforeResult, err.Error())}, logrus.ErrorLevel).Report()
 		return
 	}

@@ -26,6 +26,7 @@ var giturl string
 var branch string
 var name string
 var producer *nsq.Producer
+var track string
 
 const (
 	BasePath = "/go/src/"
@@ -78,6 +79,11 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
+			Name:        "track, t",
+			Usage:       "The track ID",
+			Destination: &track,
+		},
+		cli.StringFlag{
 			Name:        "git, g",
 			Usage:       "The Git URL",
 			Destination: &giturl,
@@ -103,18 +109,21 @@ func main() {
 }
 
 func buildAction(c *cli.Context) error {
+	log.Z().AddID(track)
 	defer log.Output(model.GoAgent, name, logrus.Fields{"msg": model.DefualtFinishFlag, "name": name}, logrus.InfoLevel).Report()
 	nsqInit()
 	valid()
 
 	path, err := cloneGit(giturl, utils.ParsePath(giturl), branch)
 	if err != nil {
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"msg": fmt.Sprintf("Clone Error %s", err.Error()), "name": name})).Error(model.GoAgent)
 		log.Output(model.GoAgent, name, logrus.Fields{"msg": fmt.Sprintf("Clone Error %s", err.Error()), "name": name}, logrus.ErrorLevel).Report()
 		return err
 	}
 
 	configure, err := utils.GetConfigure(name)
 	if err != nil {
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"msg": fmt.Sprintf("Get Configure Error %s", err.Error()), "name": name})).Error(model.GoAgent)
 		log.Output(model.GoAgent, name, logrus.Fields{"msg": fmt.Sprintf("Get Configure Error %s", err.Error()), "name": name}, logrus.ErrorLevel).Report()
 		return err
 	}
@@ -138,6 +147,7 @@ func cloneGit(url, name, branch string) (path string, err error) {
 	}
 	ref := "refs/remotes/origin/" + branch
 
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"ref": ref, "path": name})).Error(model.GoAgent)
 	log.Output(model.GoAgent, name, logrus.Fields{"ref": ref, "path": name}, logrus.InfoLevel).Report()
 	path = os.Getenv("GOPATH") + "/src/" + name
 	_, err = git.PlainClone(path, false, &git.CloneOptions{

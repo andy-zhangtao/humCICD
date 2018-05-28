@@ -3,7 +3,7 @@ language = "golang"
 
 # dependence 安装依赖. 当need为true时，会安装语言类型进行安装. 需要定制化安装，在cmd中输入命令
 [dependence]
-need = true
+need = false
 cmd = [
     "dep",
     "init"

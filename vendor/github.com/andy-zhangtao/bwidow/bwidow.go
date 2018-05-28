@@ -73,6 +73,7 @@ type BWDriver interface {
 type BW struct {
 	driver int
 	client map[int]BWDriver
+	err    error
 }
 
 // GetWidow 获取当前全局Widow. 如果没有则创建
@@ -98,18 +99,21 @@ func GetWidow() (*BW) {
     }
 ```
 */
-func (this *BW) Driver(driver int) (err error) {
+func (this *BW) Driver(driver int) (*BW) {
+	if this.err != nil {
+		return this
+	}
 	switch driver {
 	case DRIVER_MONGO:
 		bm := BWMongo{}
-		if err = bm.DriverInit(); err != nil {
-			return err
+		if err := bm.DriverInit(); err != nil {
+			this.err = err
 		}
 		Widow.driver = DRIVER_MONGO
 		Widow.client[DRIVER_MONGO] = &bm
 	}
 
-	return
+	return this
 }
 
 //First 查询与u绑定的表中的首条记录
@@ -142,8 +146,9 @@ func (this *BW) First(uPtr interface{}) (err error) {
 	bw.Map(User{}, "devex_user_copy")
 ```
 */
-func (this *BW) Map(u interface{}, name string) {
+func (this *BW) Map(u interface{}, name string) (*BW) {
 	this.client[this.driver].Map(u, name)
+	return this
 }
 
 //FindOne 通过u的字段查询数据
@@ -377,10 +382,22 @@ func (this *BW) DeleteAll(uPtr interface{}) (num int, err error) {
 ```
 
 */
-func (this *BW) CheckIndex(uPtr interface{}) (err error) {
-	return this.client[this.driver].checkIndex(uPtr)
+
+func (this *BW) CheckIndex(uPtr interface{}) (*BW) {
+	if this.err != nil {
+		return this
+	}
+	if err := this.client[this.driver].checkIndex(uPtr); err != nil {
+		this.err = err
+	}
+	return this
 }
 
 func (this *BW) Version() (string) {
 	return BW_VERSION
+}
+
+//Error 返回当前Error信息
+func (this *BW) Error() (error) {
+	return this.err
 }

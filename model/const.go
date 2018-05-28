@@ -86,5 +86,6 @@ const (
 )
 
 const (
-	DB_GITHUB_SYNC = "github_sync"
+	DB_GITHUB_SYNC       = "github_sync"
+	DB_PROJECT_CONFIGURE = "configure"
 )

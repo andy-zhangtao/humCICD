@@ -7,10 +7,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 
+	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/fsouza/go-dockerclient"
@@ -35,7 +35,7 @@ type gitInfo struct {
 }
 
 func (this *BuildAgent) HandleMessage(m *nsq.Message) error {
-	logrus.WithFields(logrus.Fields{"HandleMessage": string(m.Body)}).Info(this.Name)
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"HandleMessage": string(m.Body)})).Info(this.Name)
 	m.DisableAutoResponse()
 	workerChan <- m
 	return nil
@@ -43,7 +43,7 @@ func (this *BuildAgent) HandleMessage(m *nsq.Message) error {
 
 func (this *BuildAgent) Run() {
 	if err := this.checkRun(); err != nil {
-		logrus.WithFields(logrus.Fields{"BuildAgent CheckRun Failed": err}).Error(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"BuildAgent CheckRun Failed": err})).Error(this.Name)
 		return
 	}
 
@@ -53,14 +53,14 @@ func (this *BuildAgent) Run() {
 	cfg.MaxInFlight = 1000
 	r, err := nsq.NewConsumer(model.GitConfIDTopic, this.Name, cfg)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"Create Consumer Error": err, "Agent": this.Name}).Error(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Create Consumer Error": err, "Agent": this.Name})).Error(this.Name)
 		return
 	}
 
 	go func() {
-		logrus.WithFields(logrus.Fields{"WorkChan": "Listen..."}).Info(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"WorkChan": "Listen..."})).Info(this.Name)
 		for m := range workerChan {
-			logrus.WithFields(logrus.Fields{"BuildMsg": string(m.Body)}).Info(this.Name)
+			logrus.WithFields(log.Z().Fields(logrus.Fields{"BuildMsg": string(m.Body)})).Info(this.Name)
 			// msg := model.GitConfigure{}
 			//
 			// err = json.Unmarshal(m.Body, &msg)
@@ -82,7 +82,7 @@ func (this *BuildAgent) Run() {
 		logrus.Fatalf(err.Error())
 	}
 
-	logrus.WithFields(logrus.Fields{this.Name: "Listen...", "NSQ": this.NsqEndpoint}).Info(this.Name)
+	logrus.WithFields(log.Z().Fields(logrus.Fields{this.Name: "Listen...", "NSQ": this.NsqEndpoint})).Info(this.Name)
 	<-r.StopChan
 }
 
@@ -91,14 +91,14 @@ func (this *BuildAgent) Run() {
 func (this *BuildAgent) checkRun() error {
 	/*check docker runtime*/
 	if cli, err := checkDocker(); err != nil {
-		return errors.New(fmt.Sprintf("Check Docker Error [%v]", err))
+		return log.Z().Error(fmt.Sprintf("Check Docker Error [%v]", err))
 	} else {
 		this.Client = cli
 		env, err := this.Client.Version()
 		if err != nil {
 			return err
 		}
-		logrus.WithFields(logrus.Fields{"Docker Version": env.Get("Version")}).Info(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Docker Version": env.Get("Version")})).Info(this.Name)
 	}
 
 	summry, err := this.Client.ListImages(docker.ListImagesOptions{
@@ -109,12 +109,12 @@ func (this *BuildAgent) checkRun() error {
 		// Filter: fmt.Sprintf("reference=%s", model.GoImage),
 	})
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"List Image Error": err}).Error(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"List Image Error": err})).Error(this.Name)
 		return err
 	}
 
 	if len(summry) == 0 {
-		logrus.WithFields(logrus.Fields{"Is Has goAgent": false, "Pull Image": "..."}).Info(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Is Has goAgent": false, "Pull Image": "..."})).Info(this.Name)
 		this.Client.PullImage(docker.PullImageOptions{
 			Context:    context.Background(),
 			Repository: model.GoImage,
@@ -122,7 +122,7 @@ func (this *BuildAgent) checkRun() error {
 		}, docker.AuthConfiguration{})
 		// this.Client.ImagePull(context.Background(), model.GoImage, types.ImagePullOptions{})
 	} else {
-		logrus.WithFields(logrus.Fields{"Is Has goAgent": true}).Info(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Is Has goAgent": true})).Info(this.Name)
 	}
 
 	return nil
@@ -141,11 +141,11 @@ func checkDocker() (client *docker.Client, err error) {
 func (this *BuildAgent) handleBuild(msgid string) {
 	configure, err := utils.GetConfigure(msgid)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"Get Configrue Err": err}).Info(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Get Configrue Err": err})).Info(this.Name)
 		return
 	}
 
-	logrus.WithFields(logrus.Fields{"Name": configure.Name, "Configrue": configure.Configrue}).Info(this.Name)
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"Name": configure.Name, "Configrue": configure})).Info(this.Name)
 	switch configure.Configrue.Language {
 	case "golang":
 		this.buildGolang(configure)
@@ -170,17 +170,19 @@ func (this *BuildAgent) buildGolang(msg *model.GitConfigure) {
 		}
 	}
 
+	cmd := fmt.Sprintf("-t %s -g %s -b %s -n %s", log.Z().MyTrack(), msg.GitUrl, msg.Branch, msg.Name)
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"create contianer": cmd})).Info(this.Name)
 	opt := model.BuildOpts{
 		Client: this.Client,
 		DockerOpt: []model.DockerOpts{model.DockerOpts{
 			Img: "vikings/goagent",
-			Cmd: fmt.Sprintf("-g %s -b %s -n %s", msg.GitUrl, msg.Branch, msg.Name),
+			Cmd: cmd,
 			Env: envMap,
 		}},
 	}
 
-	if msg.Configrue.After.Usedocker{
-		opt.DockerOpt[0].Binds=[]string{"/var/run/docker.sock:/var/run/docker.sock"}
+	if msg.Configrue.After.Usedocker {
+		opt.DockerOpt[0].Binds = []string{"/var/run/docker.sock:/var/run/docker.sock"}
 	}
 
 	err := utils.CreateContainer(opt)

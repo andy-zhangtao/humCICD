@@ -34,11 +34,12 @@ type HiDepend struct {
 
 type GitConfigure struct {
 	ID        bson.ObjectId `json:"_id" bson:"_id"`
-	Name      string        `json:"name"`
-	GitUrl    string        `json:"giturl"`
-	Branch    string        `json:"branch"`
+	Name      string        `json:"name" bson:"name"`
+	GitUrl    string        `json:"giturl" bson:"giturl"`
+	Branch    string        `json:"branch" bson:"branch"`
 	Email     string        `json:"email" bson:"email"`
-	Configrue HICD          `json:"configrue"`
+	Configrue HICD          `json:"configure" bson:"configure"`
+	Track     string        `json:"track" bson:"track"`
 }
 
 type HICD struct {

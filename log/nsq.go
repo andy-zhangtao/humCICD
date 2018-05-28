@@ -3,7 +3,7 @@
  * andy-zhangtao <ztao8607@gmail.com>
  */
 
-package utils
+package log
 
 import (
 	"os"

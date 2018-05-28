@@ -69,15 +69,20 @@ func init() {
 
 	//	Use Black Widow
 	bw = bwidow.GetWidow()
-	err = bw.Driver(bwidow.DRIVER_MONGO)
+	err = bw.Driver(bwidow.DRIVER_MONGO).Error()
 	if err != nil {
 		logrus.WithFields(log.Z().Fields(logrus.Fields{"BWidow Driver Init Error": err})).Errorln(ModuleName)
 		return
 	}
 
 	bw.Map(model.GitHubSyncData{}, model.DB_GITHUB_SYNC)
+	bw.Map(model.GitConfigure{}, model.DB_PROJECT_CONFIGURE)
 
-	logrus.WithFields(log.Z().Fields(logrus.Fields{"BWidow Init Sucess Version": bw.Version()})).Info(ModuleName)
+	if err = bw.CheckIndex(new(model.GitHubSyncData)).CheckIndex(new(model.GitConfigure)).Error(); err != nil {
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"BWidow Check Index Error": err.Error()})).Error(ModuleName)
+	} else {
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"BWidow Init Sucess Version": bw.Version()})).Info(ModuleName)
+	}
 }
 
 func getSession() *mgo.Session {

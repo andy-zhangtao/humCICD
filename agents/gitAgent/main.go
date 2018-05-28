@@ -206,6 +206,7 @@ func sendConfigure(configure *model.HICD) error {
 		Branch:    branch,
 		Email:     email,
 		Configrue: *configure,
+		Track:     log.Z().MyTrack(),
 	}
 
 	data, err := json.Marshal(&hc)

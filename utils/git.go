@@ -13,8 +13,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,7 +24,7 @@ import (
 func ParseName(url string) (name string) {
 	gitName := strings.Split(url, "/")
 	name = strings.Split(gitName[len(gitName)-1], ".")[0]
-	fmt.Printf("GitAgent Will Clone [%s]\n", name)
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"GitAgent Will Clone": name})).Info(ModuleName)
 	return
 }
 
@@ -44,27 +44,27 @@ func ParsePath(url string) (path string) {
 // idOrName 工程ID或者名称 如果通过ID查询失败，就会通过名称查询
 func GetConfigure(idOrName string) (*model.GitConfigure, error) {
 	if os.Getenv(model.EnvDataAgent) == "" {
-		return nil, errors.New(fmt.Sprintf("[%s]Empty!", model.EnvDataAgent))
+		return nil, log.Z().Error(fmt.Sprintf("[%s]Empty!", model.EnvDataAgent))
 	}
 
 	resp, err := getConfigureByID(idOrName)
 	if err != nil {
-		return nil, err
+		return nil, log.Z().Error(err.Error())
 	}
 
 	switch resp.StatusCode {
 	case http.StatusOK:
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return nil, err
+			return nil, log.Z().Error(err.Error())
 		}
 
 		var config model.GitConfigure
 
 		err = json.Unmarshal(data, &config)
 		if err != nil {
-			logrus.WithFields(logrus.Fields{"data": string(data)}).Info("GetConfigure")
-			return nil, err
+			logrus.WithFields(log.Z().Fields(logrus.Fields{"data": string(data)})).Info(ModuleName)
+			return nil, log.Z().Error(err.Error())
 		}
 
 		return &config, nil
@@ -72,34 +72,34 @@ func GetConfigure(idOrName string) (*model.GitConfigure, error) {
 		// 	通过ID查询失败
 		resp, err = getConfigureByName(idOrName)
 		if err != nil {
-			return nil, err
+			return nil, log.Z().Error(err.Error())
 		}
 
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return nil, err
+			return nil, log.Z().Error(err.Error())
 		}
 
 		var config model.GitConfigure
 
 		err = json.Unmarshal(data, &config)
 		if err != nil {
-			logrus.WithFields(logrus.Fields{"data": string(data)}).Info("GetConfigure")
-			return nil, err
+			logrus.WithFields(log.Z().Fields(logrus.Fields{"data": string(data)})).Info("GetConfigure")
+			return nil, log.Z().Error(err.Error())
 		}
 
 		return &config, nil
 	}
 
-	return nil, errors.New("API Invoke Error")
+	return nil, log.Z().Error("API Invoke Error")
 }
 
 func DeleteConfigure(id string) (resp *http.Response, err error) {
-	logrus.WithFields(logrus.Fields{"API": os.Getenv(model.EnvDataAgent) + "/configure/" + id}).Info("DeleteConfigure")
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"API": os.Getenv(model.EnvDataAgent) + "/configure/" + id})).Info(ModuleName)
 	client := &http.Client{}
-	req, err1 := http.NewRequest("DELETE", os.Getenv(model.EnvDataAgent) + "/configure/" + id, nil)
-	if err1 != nil{
-		err = err1
+	req, err1 := http.NewRequest("DELETE", os.Getenv(model.EnvDataAgent)+"/configure/"+id, nil)
+	if err1 != nil {
+		err = log.Z().Error(err1.Error())
 		return
 	}
 	resp, err = client.Do(req)
@@ -107,13 +107,14 @@ func DeleteConfigure(id string) (resp *http.Response, err error) {
 }
 
 func getConfigureByID(id string) (resp *http.Response, err error) {
-	logrus.WithFields(logrus.Fields{"API": os.Getenv(model.EnvDataAgent) + "/configure/" + id}).Info("GetConfigure")
-	resp, err = http.Get(os.Getenv(model.EnvDataAgent) + "/configure/" + id)
+	api := os.Getenv(model.EnvDataAgent) + "/configure/" + id
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"API": api})).Info(ModuleName)
+	resp, err = http.Get(api)
 	return
 }
 
 func getConfigureByName(name string) (resp *http.Response, err error) {
-	logrus.WithFields(logrus.Fields{"API": os.Getenv(model.EnvDataAgent) + "/configure/name"}).Info("GetConfigure")
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"API": os.Getenv(model.EnvDataAgent) + "/configure/name"})).Info(ModuleName)
 	resp, err = http.Post(os.Getenv(model.EnvDataAgent)+"/configure/name", "", strings.NewReader(name))
 	return
 }
