@@ -8,7 +8,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 
@@ -39,7 +38,7 @@ func (this *TrafficAgent) HandleMessage(m *nsq.Message) error {
 func (this *TrafficAgent) Run() {
 
 	if err := this.checkRun(); err != nil {
-		logrus.WithFields(logrus.Fields{"TrafficAgent CheckRun Failed": err}).Error(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"TrafficAgent CheckRun Failed": err})).Error(this.Name)
 		return
 	}
 
@@ -49,19 +48,19 @@ func (this *TrafficAgent) Run() {
 	cfg.MaxInFlight = 1000
 	r, err := nsq.NewConsumer(model.TAGQUEUE, this.Name, cfg)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"Create Consumer Error": err, "Agent": this.Name}).Error(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Create Consumer Error": err, "Agent": this.Name})).Error(this.Name)
 		return
 	}
 
 	go func() {
-		logrus.WithFields(logrus.Fields{"WorkChan": "Listen..."}).Info(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"WorkChan": "Listen..."})).Info(this.Name)
 		for m := range workerChan {
-			logrus.WithFields(logrus.Fields{"BuildMsg": string(m.Body)}).Info(this.Name)
+			logrus.WithFields(log.Z().Fields(logrus.Fields{"BuildMsg": string(m.Body)})).Info(this.Name)
 			// msg := model.TagEventMsg{}
 			msg := model.EventMsg{}
 			err = json.Unmarshal(m.Body, &msg)
 			if err != nil {
-				logrus.WithFields(logrus.Fields{"Unmarshal Msg": err, "Origin Byte": string(m.Body)}).Error(this.Name)
+				logrus.WithFields(log.Z().Fields(logrus.Fields{"Unmarshal Msg": err, "Origin Byte": string(m.Body)})).Error(this.Name)
 				continue
 			}
 
@@ -78,12 +77,14 @@ func (this *TrafficAgent) Run() {
 		logrus.Fatalf(err.Error())
 	}
 
-	logrus.WithFields(logrus.Fields{this.Name: "Listen...", "NSQ": this.NsqEndpoint}).Info(this.Name)
+	logrus.WithFields(log.Z().Fields(logrus.Fields{this.Name: "Listen...", "NSQ": this.NsqEndpoint})).Info(this.Name)
 	<-r.StopChan
 }
 
 // handlerGit 处理GitHub发来的通知消息
 func (this *TrafficAgent) handlerGit(msg model.EventMsg) {
+	defer log.Z().Clean()
+
 	opt := model.BuildOpts{
 		Client: this.Client,
 	}
@@ -94,7 +95,7 @@ func (this *TrafficAgent) handlerGit(msg model.EventMsg) {
 		branch := m["branch"].(string)
 		name := m["name"].(string)
 		email := m["email"].(string)
-		log.Output(this.Name, branch, logrus.Fields{"Create gitAgent": fmt.Sprintf("-g %s -b %s", gitURL, branch)}, logrus.InfoLevel)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Create gitAgent": fmt.Sprintf("-g %s -b %s", gitURL, branch)})).Info(this.Name)
 		opt.DockerOpt = []model.DockerOpts{model.DockerOpts{
 			Img: "vikings/gitagent:latest",
 			// Cmd:  fmt.Sprintf("-g %s -b %s -n %s", gitURL, branch, name),
@@ -105,7 +106,7 @@ func (this *TrafficAgent) handlerGit(msg model.EventMsg) {
 	}
 	err := utils.CreateContainer(opt)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Error(log.Z().Error(err.Error()))
 	}
 
 }
@@ -115,14 +116,14 @@ func (this *TrafficAgent) handlerGit(msg model.EventMsg) {
 func (this *TrafficAgent) checkRun() error {
 	/*check docker runtime*/
 	if cli, err := checkDocker(); err != nil {
-		return errors.New(fmt.Sprintf("Check Docker Error [%v]", err))
+		return log.Z().Error(fmt.Sprintf("Check Docker Error [%v]", err))
 	} else {
 		this.Client = cli
 		env, err := this.Client.Version()
 		if err != nil {
 			return err
 		}
-		logrus.WithFields(logrus.Fields{"Docker Version": env.Get("Version")}).Info(this.Name)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Docker Version": env.Get("Version")})).Info(this.Name)
 		summry, err := this.Client.ListImages(docker.ListImagesOptions{
 			Filters: map[string][]string{
 				"reference": {model.GitImage},
@@ -131,12 +132,12 @@ func (this *TrafficAgent) checkRun() error {
 			// Filter: fmt.Sprintf("reference=%s", model.GitImage),
 		})
 		if err != nil {
-			logrus.WithFields(logrus.Fields{"List Image Error": err}).Error(this.Name)
+			logrus.WithFields(log.Z().Fields(logrus.Fields{"List Image Error": err})).Error(this.Name)
 			return err
 		}
 
 		if len(summry) == 0 {
-			logrus.WithFields(logrus.Fields{"Is Has gitAgent": false, "Pull Image": "..."}).Info(this.Name)
+			logrus.WithFields(log.Z().Fields(logrus.Fields{"Is Has gitAgent": false, "Pull Image": "..."})).Info(this.Name)
 			this.Client.PullImage(docker.PullImageOptions{
 				Context:    context.Background(),
 				Repository: model.GitImage,
@@ -144,7 +145,7 @@ func (this *TrafficAgent) checkRun() error {
 			}, docker.AuthConfiguration{})
 			// this.Client.ImagePull(context.Background(), model.GoImage, types.ImagePullOptions{})
 		} else {
-			logrus.WithFields(logrus.Fields{"Is Has gitAgent": true}).Info(this.Name)
+			logrus.WithFields(log.Z().Fields(logrus.Fields{"Is Has gitAgent": true})).Info(this.Name)
 		}
 	}
 

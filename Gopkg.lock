@@ -37,7 +37,7 @@
     "zReflect",
     "zlog"
   ]
-  revision = "4d0d9bdd467fdfac6bc85a49bfdd6e3bc45e1115"
+  revision = "c85a2aaaf42c72d3ba3a815369ce4e0090877796"
 
 [[projects]]
   branch = "master"
@@ -346,7 +346,7 @@
     "ssh/knownhosts",
     "ssh/terminal"
   ]
-  revision = "a3beeb748656e13e54256fd2cde19e058f41f60f"
+  revision = "ab813273cd59e1333f7ae7bff5d027d4aadf528c"
 
 [[projects]]
   branch = "master"

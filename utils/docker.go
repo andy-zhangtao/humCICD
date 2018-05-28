@@ -17,6 +17,10 @@ import (
 
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/3/8.
 
+const (
+	ModuleName = "Docker-Util-Service"
+)
+
 func CreateContainer(opt model.BuildOpts) error {
 	for _, o := range opt.DockerOpt {
 		if err := buildContainer(opt.Client, o); err != nil {
@@ -65,7 +69,7 @@ func buildContainer(cli *docker.Client, do model.DockerOpts) error {
 		return err
 	}
 
-	logrus.WithFields(logrus.Fields{"Name": do.Name, "ID": container.ID}).Info("BuildContainer")
+	logrus.WithFields(logrus.Fields{"Name": do.Name, "ID": container.ID}).Info(ModuleName)
 	//cli.ContainerStart(context.Background(), container.ID, types.ContainerStartOptions{})
 	return cli.StartContainer(container.ID, &docker.HostConfig{})
 }
