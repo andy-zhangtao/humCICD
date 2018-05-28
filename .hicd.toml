@@ -3,10 +3,12 @@ language = "golang"
 
 # dependence 安装依赖. 当need为true时，会安装语言类型进行安装. 需要定制化安装，在cmd中输入命令
 [dependence]
-need = false
+need = true
 cmd = [
     "dep",
-    "init"
+    "ensure",
+    "-v",
+    "--update"
     ]
 
 # env 设置环境变量, 每组环境变量使用key=value的形式
