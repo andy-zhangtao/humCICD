@@ -95,11 +95,14 @@ func (this *TrafficAgent) handlerGit(msg model.EventMsg) {
 		branch := m["branch"].(string)
 		name := m["name"].(string)
 		email := m["email"].(string)
-		logrus.WithFields(log.Z().Fields(logrus.Fields{"Create gitAgent": fmt.Sprintf("-g %s -b %s", gitURL, branch)})).Info(this.Name)
+
+		cmd := fmt.Sprintf("-t %s -g %s -b %s -e %s", log.Z().MyTrack(), gitURL, branch, email)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Create gitAgent": cmd})).Info(this.Name)
 		opt.DockerOpt = []model.DockerOpts{model.DockerOpts{
 			Img: "vikings/gitagent:latest",
 			// Cmd:  fmt.Sprintf("-g %s -b %s -n %s", gitURL, branch, name),
-			Cmd:  fmt.Sprintf("-g %s -b %s -e %s", gitURL, branch, email),
+			//Cmd:  fmt.Sprintf("-t %s -g %s -b %s -e %s", log.Z().MyTrack(), gitURL, branch, email),
+			Cmd:  cmd,
 			Name: "gitagent-" + name,
 			Env:  map[string]string{model.EnvNsqdEndpoint: os.Getenv(model.EnvNsqdEndpoint)},
 		}}

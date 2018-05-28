@@ -35,6 +35,7 @@ var project string
 var branch string
 var email string
 var producer *nsq.Producer
+var track string
 
 func nsqInit() {
 	var errNum int
@@ -68,8 +69,8 @@ func nsqInit() {
 }
 
 func valid() {
-	if giturl == "" || branch == "" {
-		log.Output(model.GitAgent, branch, logrus.Fields{"Parameter Error": "git value or branch value empty"}, logrus.ErrorLevel)
+	if giturl == "" || branch == "" || track == "" {
+		log.Output(model.GitAgent, branch, logrus.Fields{"Parameter Error": "git value or branch value or track value empty"}, logrus.ErrorLevel)
 		os.Exit(-1)
 	}
 }
@@ -81,6 +82,11 @@ func main() {
 	app.Author = "andy zhang"
 
 	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:        "track, t",
+			Usage:       "The Log Track ID",
+			Destination: &track,
+		},
 		cli.StringFlag{
 			Name:        "git, g",
 			Usage:       "The Git URL",
@@ -108,6 +114,7 @@ func main() {
 func parseAction(c *cli.Context) error {
 	nsqInit()
 	valid()
+	log.Z().AddID(track)
 	configrue, err := cloneGit(giturl, parseName(giturl), branch)
 	if err != nil {
 		return err
@@ -127,6 +134,7 @@ func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
 
 	log.Output(model.GitAgent, project, logrus.Fields{"ref": plumbing.ReferenceName(ref), "msg": ref}, logrus.InfoLevel).Report()
 
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"ref": plumbing.ReferenceName(ref), "msg": ref})).Info(model.GitAgent)
 	_, err = git.PlainClone("/tmp/"+name, false, &git.CloneOptions{
 		URL:           url,
 		Progress:      os.Stdout,
@@ -134,17 +142,20 @@ func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
 	})
 
 	if err != nil {
+		logrus.Error(log.Z().Error(err.Error()))
 		return
 	}
 
 	configure, err = parseConfigure("/tmp/" + name)
 	if err != nil {
+		logrus.Error(log.Z().Error(err.Error()))
 		log.Output(model.GitAgent, project, logrus.Fields{"msg": err.Error()}, logrus.ErrorLevel).Report()
 		// 如果读取.hicd.toml失败,此时应该退出
 		log.Output(model.GitAgent, project, logrus.Fields{"msg": model.DefualtFinishFlag}, logrus.ErrorLevel).Report()
 		return
 	}
 
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"msg": fmt.Sprintf("language:[%s]", configure.Language)})).Info(model.GitAgent)
 	log.Output(model.GitAgent, project, logrus.Fields{"msg": fmt.Sprintf("language:[%s]", configure.Language)}, logrus.InfoLevel).Report()
 	return
 }
@@ -154,6 +165,7 @@ func cloneGit(url, name, branch string) (configure *model.HICD, err error) {
 func parseName(url string) (string) {
 	gitName := strings.Split(url, "/")
 	name := strings.Split(gitName[len(gitName)-1], ".")[0]
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"Process": fmt.Sprintf("GitAgent Will Clone [%s]\n", name)})).Info(model.GitAgent)
 	log.Output(model.GitAgent, name, logrus.Fields{"Process": fmt.Sprintf("GitAgent Will Clone [%s]\n", name)}, logrus.InfoLevel)
 	return name
 }
@@ -165,14 +177,17 @@ func parseConfigure(path string) (configure *model.HICD, err error) {
 	fileName := path + "/.hicd.toml"
 	_, err = os.Open(fileName)
 	if os.IsNotExist(err) {
+		logrus.Error(log.Z().Error(fmt.Sprintf("Open .hicd.toml error[%s]", err)))
 		return nil, errors.New(fmt.Sprintf("Open .hicd.toml error[%s]", err))
 	}
 
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
+		logrus.Error(log.Z().Error(fmt.Sprintf("Read .hicd.toml error[%s]", err)))
 		return nil, errors.New(fmt.Sprintf("Read .hicd.toml error[%s]", err))
 	}
 
+	logrus.WithFields(log.Z().Fields(logrus.Fields{".hcid": string(data)})).Info(model.GitAgent)
 	log.Output(model.GitAgent, project, logrus.Fields{".hcid": string(data)}, logrus.InfoLevel)
 
 	err = toml.Unmarshal(data, configure)
@@ -198,6 +213,7 @@ func sendConfigure(configure *model.HICD) error {
 		return err
 	}
 
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"configure": hc})).Info(model.GitAgent)
 	log.Output(model.GitAgent, model.DefualtEmptyProject, logrus.Fields{"configure": hc}, logrus.InfoLevel)
 	return producer.Publish(model.GitAgentTopic, data)
 }
