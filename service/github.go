@@ -11,7 +11,13 @@ import (
 	"strings"
 
 	"github.com/andy-zhangtao/humCICD/db"
+	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
+	"github.com/sirupsen/logrus"
+)
+
+const (
+	ModuleName = "GitHubSync-Service"
 )
 
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/5/9.
@@ -55,5 +61,12 @@ func RemoveAllGitHubSync() (err error) {
 	if err = db.DeleteAllGitHubSync(); err != nil {
 		err = errors.New(fmt.Sprintf("Remove ALl GitHubSync Error [%s]", err.Error()))
 	}
+	return
+}
+
+func GetSpecifyGitHubSync(sync *model.GitHubSyncData) (err error) {
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"Query github project Info": sync})).Info(ModuleName)
+	err = db.FindOneGitHubSync(sync)
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"Return Github Project Sync Info": sync})).Info(ModuleName)
 	return
 }

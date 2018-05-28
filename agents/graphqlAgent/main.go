@@ -14,6 +14,8 @@ import (
 	"os"
 
 	"github.com/andy-zhangtao/humCICD/hicdGraphql"
+	"github.com/andy-zhangtao/humCICD/log"
+	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/service"
 	"github.com/andy-zhangtao/humCICD/utils"
 	"github.com/gorilla/mux"
@@ -35,7 +37,7 @@ func main() {
 
 func init() {
 	if err := utils.CheckMongo(); err != nil {
-		logrus.WithFields(logrus.Fields{"Check Mongo Error": err}).Error(ModelName)
+		logrus.WithFields(log.Z().Fields(logrus.Fields{"Check Mongo Error": err})).Error(ModelName)
 		os.Exit(-1)
 	}
 }
@@ -50,12 +52,33 @@ var rootDevexQuery = graphql.NewObject(graphql.ObjectConfig{
 	Fields: graphql.Fields{
 		"github": &graphql.Field{
 			Type: graphql.NewList(hicdGraphql.GitHubType),
+			Args: graphql.FieldConfigArgument{
+				"name": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				if gt, err := service.GetGitHubSync(); err != nil {
-					return nil, errors.New(fmt.Sprintf("Query GitHub Error [%s]", err.Error()))
-				} else {
-					return gt, nil
+				defer log.Z().Clean()
+				name, _ := p.Args["name"].(string)
+				if name == "" {
+					logrus.WithFields(log.Z().Fields(logrus.Fields{"Redy for fetch github project info": "All"})).Info(ModelName)
+					if gt, err := service.GetGitHubSync(); err != nil {
+						return nil, errors.New(fmt.Sprintf("Query GitHub Error [%s]", err.Error()))
+					} else {
+						return gt, nil
+					}
 				}
+
+				sync := model.GitHubSyncData{
+					Name: name,
+				}
+
+				logrus.WithFields(log.Z().Fields(logrus.Fields{"Redy for fetch github project info": name})).Info(ModelName)
+				if err := service.GetSpecifyGitHubSync(&sync); err != nil {
+					return nil, err
+				}
+
+				return []model.GitHubSyncData{sync}, nil
 			},
 		},
 	},

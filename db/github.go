@@ -6,11 +6,17 @@
 package db
 
 import (
-			"github.com/andy-zhangtao/humCICD/model"
+	"github.com/andy-zhangtao/humCICD/log"
+	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/globalsign/mgo/bson"
-	)
+	"github.com/sirupsen/logrus"
+)
 
 //Write by zhangtao<ztao8607@gmail.com> . In 2018/5/9.
+
+const(
+	ModuelName = "GitHubSync-DB-Service"
+)
 
 func SaveGitHubSync(s model.GitHubSyncData) (err error) {
 	if s.ID == "" {
@@ -42,4 +48,11 @@ func DeleteAllGitHubSync() (err error) {
 
 func SaveALLGitHubSync(s []model.GitHubSyncData) (err error) {
 	return bw.SaveAll(s)
+}
+
+//FindOneGitHubSync 查询符合条件的GitHubSync数据
+//s 包含name属性的GithubSync数据
+func FindOneGitHubSync(s *model.GitHubSyncData)(err error){
+	logrus.WithFields(log.Z().Fields(logrus.Fields{"Receive Query Request":s})).Info(ModuelName)
+	return bw.FindOne(s)
 }
