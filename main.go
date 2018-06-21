@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/andy-zhangtao/_hulk_client"
 	"github.com/andy-zhangtao/humCICD/git"
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
@@ -23,6 +24,10 @@ import (
 const _API_ = "/v1"
 const ModuleName = "HUMCICD"
 
+const ServiceName = "HICD_MAIN_AGENT"
+const ServiceVersion = "v1.0.0"
+const ServiceResume = "HICD_MAIN_AGENT监听来自于Github的Pull请求,并会进行初步解析处理。然后将此数据放入NSQ中"
+
 type NsqBridge struct {
 	producer *nsq.Producer
 }
@@ -30,6 +35,10 @@ type NsqBridge struct {
 var nb *NsqBridge
 
 func main() {
+	defer func() {
+		_hulk_client.UnRegister(ServiceName, ServiceVersion)
+	}()
+
 	switch strings.ToLower(os.Getenv("HUM_DEBUG")) {
 	case "debug":
 		logrus.SetLevel(logrus.DebugLevel)
@@ -148,6 +157,7 @@ func trigger(w http.ResponseWriter, r *http.Request) {
 }
 
 func init() {
+	_hulk_client.Register(ServiceName, ServiceVersion, ServiceResume)
 	nsq_endpoint := os.Getenv(model.EnvNsqdEndpoint)
 	logrus.WithFields(logrus.Fields{"Connect NSQ": nsq_endpoint,}).Info(ModuleName)
 

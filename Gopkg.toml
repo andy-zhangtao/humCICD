@@ -64,3 +64,7 @@
 [[constraint]]
   branch = "alpha"
   name = "github.com/andy-zhangtao/bwidow"
+
+[[constraint]]
+  branch = "develop"
+  name = "github.com/andy-zhangtao/_hulk_client"

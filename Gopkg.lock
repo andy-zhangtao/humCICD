@@ -23,6 +23,12 @@
   revision = "cd527374f1e5bff4938207604a14f2e38a9cf512"
 
 [[projects]]
+  branch = "develop"
+  name = "github.com/andy-zhangtao/_hulk_client"
+  packages = ["."]
+  revision = "7c973b12629279d2e47408bf6317421bb3d1d5fd"
+
+[[projects]]
   branch = "alpha"
   name = "github.com/andy-zhangtao/bwidow"
   packages = ["."]
@@ -470,6 +476,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b6871a774ac46ebb56b043b3ad4856ff1c236dde37042548b40fef447396fb96"
+  inputs-digest = "7ff5c1f4416243677375f8019d704ec6867740581eea0fe3ab56293b357a7244"
   solver-name = "gps-cdcl"
   solver-version = 1

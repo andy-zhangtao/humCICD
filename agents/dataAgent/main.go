@@ -131,46 +131,6 @@ func (this *DataAgent) handleBuild(msg model.GitConfigure) {
 var rootMutation = graphql.NewObject(graphql.ObjectConfig{
 	Name: "RootMutation",
 	Fields: graphql.Fields{
-		/*
-			curl -g 'http://localhost:8080/graphql?query=mutation+_{createTodo(text:"My+new+todo"){id,text,done}}'
-		*/
-		//"createTodo": &graphql.Field{
-		//	Type:        model.ProjectType, // the return type for this field
-		//	Description: "Create new todo",
-		//	Args: graphql.FieldConfigArgument{
-		//		"text": &graphql.ArgumentConfig{
-		//			Type: graphql.NewNonNull(graphql.String),
-		//		},
-		//	},
-		//	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-		//
-		//		// marshall and cast the argument value
-		//		text, _ := params.Args["text"].(string)
-		//
-		//		// figure out new id
-		//		newID := RandStringRunes(8)
-		//
-		//		// perform mutation operation here
-		//		// for e.g. create a Todo and save to DB.
-		//		newTodo := Todo{
-		//			ID:   newID,
-		//			Text: text,
-		//			Done: false,
-		//		}
-		//
-		//		TodoList = append(TodoList, newTodo)
-		//
-		//		// return the new Todo object that we supposedly save to DB
-		//		// Note here that
-		//		// - we are returning a `Todo` struct instance here
-		//		// - we previously specified the return Type to be `todoType`
-		//		// - `Todo` struct maps to `todoType`, as defined in `todoType` ObjectConfig`
-		//		return newTodo, nil
-		//	},
-		//},
-		/*
-			curl -g 'http://localhost:8080/graphql?query=mutation+_{updateTodo(id:"a",done:true){id,text,done}}'
-		*/
 		"updateProject": &graphql.Field{
 			Type:        model.ProjectType, // the return type for this field
 			Description: "Update existing project, mark it activity or unactivity",
@@ -198,6 +158,56 @@ var rootMutation = graphql.NewObject(graphql.ObjectConfig{
 				}
 
 				return newProject, nil
+			},
+		},
+		//新增构建/部署请求
+		"addNewRequest": &graphql.Field{
+			Type:        model.ProjectType,
+			Description: "Add a new HICD request",
+			Args: graphql.FieldConfigArgument{
+				"name": &graphql.ArgumentConfig{
+					Type:        graphql.NewNonNull(graphql.String),
+					Description: "The name of project",
+				},
+				"branch": &graphql.ArgumentConfig{
+					Type:        graphql.NewNonNull(graphql.String),
+					Description: "The branch to build/deploy",
+				},
+				"url": &graphql.ArgumentConfig{
+					Type:        graphql.NewNonNull(graphql.String),
+					Description: "The git url of project",
+				},
+				"email": &graphql.ArgumentConfig{
+					Type:        graphql.NewNonNull(graphql.String),
+					Description: "The email of user, which to send result",
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				name, _ := p.Args["name"].(string)
+				branch, _ := p.Args["branch"].(string)
+				url, _ := p.Args["url"].(string)
+				email, _ := p.Args["email"].(string)
+
+				logrus.WithFields(log.Z().Fields(logrus.Fields{"Receive HICD Request name": name, "branch": branch, "url": url, "email": email})).Info(model.DataAgent)
+
+				data, err := json.Marshal(&model.EventMsg{
+					Kind:  model.PushEventType,
+					Email: email,
+					Msg: model.PushEventMsg{
+						GitURL: url,
+						Branch: branch,
+						Name:   name,
+						Email:  email,
+					},
+				})
+
+				if err != nil {
+					logrus.WithFields(log.Z().Fields(logrus.Fields{"Marshal EventMSG Error": err, "body": string(data)})).Error(model.DataAgent)
+					return nil, log.Z().Error(err.Error())
+				}
+				producer.Publish(model.TAGQUEUE, data)
+
+				return nil, nil
 			},
 		},
 	},

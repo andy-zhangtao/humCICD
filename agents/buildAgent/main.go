@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/andy-zhangtao/_hulk_client"
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
@@ -20,6 +21,10 @@ import (
 
 var workerHome map[string]chan *nsq.Message
 var workerChan chan *nsq.Message
+
+const ServiceName = "HICD_BUILD_AGENT"
+const ServiceVersion = "v1.0.0"
+const ServiceResume = "HICD_BUILD_AGENT 从NSQ读取工程解析后的数据，然后执行构建任务"
 
 /*buildAgent 从NSQ读取工程解析后的数据，然后执行构建任务*/
 
@@ -192,6 +197,11 @@ func (this *BuildAgent) buildGolang(msg *model.GitConfigure) {
 }
 
 func main() {
+	_hulk_client.Register(ServiceName, ServiceVersion, ServiceResume)
+	defer func() {
+		logrus.Print("hulk will unregister")
+		_hulk_client.UnRegister(ServiceName, ServiceVersion)
+	}()
 	bagent := BuildAgent{
 		Name:        model.BuildAgent,
 		NsqEndpoint: os.Getenv(model.EnvNsqdEndpoint),
