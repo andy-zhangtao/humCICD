@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/andy-zhangtao/_hulk_client"
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/service"
@@ -25,7 +26,14 @@ const (
 	ModelName = "HICD-GitHub-Agent"
 )
 
+const ServiceName = "HICD_GITHUB_AGENT"
+const ServiceVersion = "v1.0.0"
+const ServiceResume = "HICD_GITHUB_AGENT 定时解析GitHub工程"
+
 func main() {
+	defer func() {
+		_hulk_client.UnRegister(ServiceName, ServiceVersion)
+	}()
 	//定时查询GitHub 工程
 	go syncGitHubInTime()
 
@@ -34,6 +42,11 @@ func main() {
 }
 
 func init() {
+
+	if err := _hulk_client.Register(ServiceName, ServiceVersion, ServiceResume); err != nil {
+		logrus.Error(err)
+	}
+
 	if err := utils.CheckGitHubToken(); err != nil {
 		logrus.WithFields(log.Z().Fields(logrus.Fields{"Check GitHub Token Error": err})).Error(ModelName)
 		os.Exit(-1)
@@ -43,7 +56,6 @@ func init() {
 		logrus.WithFields(log.Z().Fields(logrus.Fields{"Check Mongo Error": err})).Error(ModelName)
 		os.Exit(-1)
 	}
-
 
 }
 

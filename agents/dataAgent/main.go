@@ -13,6 +13,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/andy-zhangtao/_hulk_client"
 	"github.com/andy-zhangtao/humCICD/db"
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
@@ -29,6 +30,10 @@ var workerHome map[string]chan *nsq.Message
 var workerChan chan *nsq.Message
 /*buildAgent 从NSQ读取工程解析后的数据，然后执行构建任务*/
 var producer *nsq.Producer
+
+const ServiceName = "HICD_DATA_AGENT"
+const ServiceVersion = "v1.0.0"
+const ServiceResume = "HICD_DATA_AGENT 将项目配置数据持久化到数据库当中同时提供查询API"
 
 func nsqInit() {
 	var errNum int
@@ -343,6 +348,12 @@ func handleGraphQL(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	defer func() {
+		_hulk_client.UnRegister(ServiceName, ServiceVersion)
+	}()
+
+	_hulk_client.Register(ServiceName, ServiceVersion, ServiceResume)
+
 	bagent := DataAgent{
 		Name:        model.DataAgent,
 		NsqEndpoint: os.Getenv(model.EnvNsqdEndpoint),

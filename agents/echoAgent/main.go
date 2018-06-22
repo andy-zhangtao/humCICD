@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/andy-zhangtao/_hulk_client"
 	"github.com/andy-zhangtao/gogather/tools"
 	"github.com/andy-zhangtao/humCICD/influx"
 	"github.com/andy-zhangtao/humCICD/model"
@@ -22,6 +23,10 @@ import (
 
 var workerHome map[string]chan *nsq.Message
 var workerChan chan *nsq.Message
+
+const ServiceName = "HICD_ECHO_AGENT"
+const ServiceVersion = "v1.0.0"
+const ServiceResume = "HICD_ECHO_AGENT 从NSQ读取所有成功或者失败的信息"
 
 type EchoAgent struct {
 	Name        string
@@ -158,6 +163,12 @@ func sendEmail(project string) (string, error) {
 
 /*EchoAgent 从NSQ读取所有成功或者失败的信息*/
 func main() {
+	defer func() {
+		_hulk_client.UnRegister(ServiceName, ServiceVersion)
+	}()
+
+	_hulk_client.Register(ServiceName, ServiceVersion, ServiceResume)
+
 	eagent := EchoAgent{
 		Name:        model.EchoAgent,
 		NsqEndpoint: os.Getenv(model.EnvNsqdEndpoint),
