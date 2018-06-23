@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/andy-zhangtao/_hulk_client"
 	"github.com/andy-zhangtao/humCICD/hicdGraphql"
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
@@ -28,7 +29,14 @@ const (
 	ModelName = "HICD-GraphQL-Agent"
 )
 
+const ServiceName = "HICD_GRAPHQL_AGENT"
+const ServiceVersion = "v1.0.0"
+const ServiceResume = "HICD_GRAPHQL_AGENT 提供GRAPHQL接口"
+
 func main() {
+	defer func() {
+		_hulk_client.UnRegister(ServiceName, ServiceVersion)
+	}()
 	router := mux.NewRouter()
 	router.Path("/api").HandlerFunc(handleDevExGraphQL)
 	handler := cors.AllowAll().Handler(router)
@@ -36,6 +44,7 @@ func main() {
 }
 
 func init() {
+	_hulk_client.Register(ServiceName, ServiceVersion, ServiceResume)
 	if err := utils.CheckMongo(); err != nil {
 		logrus.WithFields(log.Z().Fields(logrus.Fields{"Check Mongo Error": err})).Error(ModelName)
 		os.Exit(-1)

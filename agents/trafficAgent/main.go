@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/andy-zhangtao/_hulk_client"
 	"github.com/andy-zhangtao/humCICD/log"
 	"github.com/andy-zhangtao/humCICD/model"
 	"github.com/andy-zhangtao/humCICD/utils"
@@ -21,6 +22,10 @@ import (
 
 var workerHome map[string]chan *nsq.Message
 var workerChan chan *nsq.Message
+
+const ServiceName = "HICD_TRAFFIC_AGENT"
+const ServiceVersion = "v1.0.0"
+const ServiceResume = "HICD_TRAFFIC_AGENT 接受GITHUB的处理请求, 并且提供路由转发"
 
 type TrafficAgent struct {
 	Name        string
@@ -167,6 +172,11 @@ func checkDocker() (client *docker.Client, err error) {
 
 func main() {
 
+	defer func() {
+		_hulk_client.UnRegister(ServiceName, ServiceVersion)
+	}()
+
+	_hulk_client.Register(ServiceName, ServiceVersion, ServiceResume)
 	tagent := TrafficAgent{
 		Name:        model.TrafficAgent,
 		NsqEndpoint: os.Getenv(model.EnvNsqdEndpoint),
